@@ -22,7 +22,6 @@ public class LR : ModuleRules
 				"ModularGameplay",
 				"ModularGameplayActors",
 				"DataRegistry",
-				"GameFeatures",
 				"Niagara",
 				"ControlFlows",
 				"PropertyPath"
