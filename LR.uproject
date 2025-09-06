@@ -207,6 +207,10 @@
 		{
 			"Name": "RigLogic",
 			"Enabled": true
+		},
+		{
+			"Name": "HTN",
+			"Enabled": true
 		}
 	]
 }
