@@ -1,8 +1,10 @@
-﻿// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
-#include "Modules/ModuleManager.h"
+#include "CoreMinimal.h"
+#include "UObject/Object.h"
+#include "HTN.generated.h"
 
 UCLASS(BlueprintType)
 class HTN_API UHTN : public UObject
@@ -13,13 +15,4 @@ public:
 	UPROPERTY()
 	class UEdGraph* Graph;
 #endif
-};
-
-class FHTNModule : public IModuleInterface
-{
-public:
-
-	/** IModuleInterface implementation */
-	virtual void StartupModule() override;
-	virtual void ShutdownModule() override;
 };
