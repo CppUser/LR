@@ -24,7 +24,7 @@ public class LR : ModuleRules
 				"DataRegistry",
 				"Niagara",
 				"ControlFlows",
-				"PropertyPath"
+				"PropertyPath", 
 			}
 		);
 		PrivateDependencyModuleNames.AddRange(
@@ -42,7 +42,7 @@ public class LR : ModuleRules
 				"CommonInput",
 				"CommonGame",
 				"EngineSettings",
-				"Json",
+				"Json", "AnimGraphRuntime",
 			}
 		);
 	}

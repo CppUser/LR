@@ -3,6 +3,8 @@
 
 #include "LR/Public/AbilitySystem/Core/LRAbilitySystemComponent.h"
 
+#include "Animation/LRAnimInstance.h"
+
 UE_DEFINE_GAMEPLAY_TAG(TAG_Gameplay_AbilityInputBlocked, "Gameplay.AbilityInputBlocked");
 
 
@@ -47,7 +49,10 @@ void ULRAbilitySystemComponent::InitAbilityActorInfo(AActor* InOwnerActor, AActo
 		}
 
 		//TODO: Register global ASC
-		//TODO: Initialize AnimInstance (for use of gameplay tags)
+		if (ULRAnimInstance* AnimInst = Cast<ULRAnimInstance>(ActorInfo->GetAnimInstance()))
+		{
+			AnimInst->InitializeWithAbilitySystem(this);
+		}
 
 		TryActivateAbilityOnSpawn();
 	}
