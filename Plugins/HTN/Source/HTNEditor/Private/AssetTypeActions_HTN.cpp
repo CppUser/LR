@@ -23,7 +23,7 @@ UClass* AssetTypeActions_HTN::GetSupportedClass() const
 
 uint32 AssetTypeActions_HTN::GetCategories()
 {
-	return EAssetTypeCategories::; 
+	//return EAssetTypeCategories::; 
 	return IAssetTools::Get().FindAdvancedAssetCategory(TEXT("AI"));
 }
 

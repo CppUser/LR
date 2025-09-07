@@ -8,9 +8,6 @@
 
 #define LOCTEXT_NAMESPACE "FHTNEditorModule"
 
-
-
-
 void FHTNEditorModule::StartupModule()
 {
 	MenuExtensibilityManager = MakeShared<FExtensibilityManager>();
@@ -27,12 +24,21 @@ void FHTNEditorModule::StartupModule()
 
 void FHTNEditorModule::ShutdownModule()
 {
-    
-}
+	MenuExtensibilityManager.Reset();
+	ToolBarExtensibilityManager.Reset();
 
-void FHTNEditorModule::InitEditor(const EToolkitMode::Type Mode, const TSharedPtr<class IToolkitHost>& InitToolkitHost,
-	class UHTN* HTN)
-{
+	if (FModuleManager::Get().IsModuleLoaded(TEXT("AssetTools")))
+	{
+		IAssetTools& AssetTools = FModuleManager::GetModuleChecked<FAssetToolsModule>(TEXT("AssetTools")).Get();
+		for (TSharedPtr<IAssetTypeActions>& Action : CreatedAssetTypeActions)
+		{
+			if (Action.IsValid())
+			{
+				AssetTools.UnregisterAssetTypeActions(Action.ToSharedRef());
+			}
+		}
+	}
+	CreatedAssetTypeActions.Empty();
 }
 
 TSharedRef<FHTNEditorModule> FHTNEditorModule::CreateEditor(const EToolkitMode::Type Mode,
@@ -41,6 +47,11 @@ TSharedRef<FHTNEditorModule> FHTNEditorModule::CreateEditor(const EToolkitMode::
 	TSharedRef<FHTNEditorModule> HTNEditor = MakeShared<FHTNEditorModule>();
 	HTNEditor->InitEditor(Mode, InitToolkitHost, HTN);
 	return HTNEditor;
+}
+
+void FHTNEditorModule::InitEditor(const EToolkitMode::Type Mode, const TSharedPtr<class IToolkitHost>& InitToolkitHost,
+	class UHTN* HTN)
+{
 }
 
 #undef LOCTEXT_NAMESPACE
