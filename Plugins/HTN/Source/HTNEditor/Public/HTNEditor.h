@@ -18,6 +18,15 @@ public:
     virtual void StartupModule() override;
     virtual void ShutdownModule() override;
 
+    void InitEditor(const EToolkitMode::Type Mode, const TSharedPtr<class IToolkitHost>& InitToolkitHost, class UHTN* HTN);
+
+
+    virtual TSharedRef<FHTNEditorModule> CreateEditor(
+        const EToolkitMode::Type Mode,
+        const TSharedPtr<IToolkitHost>& InitToolkitHost,
+        class UHTN* HTN);
+
+
     static FHTNEditorModule& Get()
     {
         return FModuleManager::LoadModuleChecked<FHTNEditorModule>("HTNModule");
@@ -26,5 +35,5 @@ private:
     TSharedPtr<FExtensibilityManager> MenuExtensibilityManager;
     TSharedPtr<FExtensibilityManager> ToolBarExtensibilityManager;
 
-
+    TArray<TSharedPtr<IAssetTypeActions>> CreatedAssetTypeActions;
 };
