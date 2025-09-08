@@ -19,10 +19,10 @@ HTNEditorToolkit::~HTNEditorToolkit()
 void HTNEditorToolkit::InitEditorToolkit(const EToolkitMode::Type Mode,
 	const TSharedPtr<class IToolkitHost>& InitToolkitHost, class UHTN* InHTN)
 {
-	HTN = InHTN;
+	HTNAsset = InHTN;
 
 	TArray<UObject*> ObjectsToEdit;
-	if (HTN) ObjectsToEdit.Add(HTN);
+	if (HTNAsset) ObjectsToEdit.Add(HTNAsset);
 
 	const TArray<UObject*>* const EditedObjects = GetObjectsCurrentlyBeingEdited();
 	const bool bIsAlreadyEditingObjects = EditedObjects && EditedObjects->Num();

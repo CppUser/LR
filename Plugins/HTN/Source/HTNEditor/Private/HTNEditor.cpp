@@ -9,6 +9,7 @@
 
 #define LOCTEXT_NAMESPACE "FHTNEditorModule"
 
+
 void FHTNEditorModule::StartupModule()
 {
 	MenuExtensibilityManager = MakeShared<FExtensibilityManager>();

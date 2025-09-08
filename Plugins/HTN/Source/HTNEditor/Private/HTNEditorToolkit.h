@@ -35,5 +35,5 @@ public:
 	virtual void NotifyPostChange(const FPropertyChangedEvent& PropertyChangedEvent, FProperty* PropertyThatChanged) override;
 private:
 	
-	class UHTN* HTN;
+	class UHTN* HTNAsset;
 };
