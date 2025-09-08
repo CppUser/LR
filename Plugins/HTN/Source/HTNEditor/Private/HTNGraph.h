@@ -18,7 +18,7 @@ public:
 	virtual void OnCreated();
 
 	// Update the runtime asset from the visual graph
-	virtual void UpdateAsset();
+	virtual void UpdateAsset(int32 UpdateFlags = 0) override;
 
 	// Find the root node
 	class UHTNRootGraphNode* FindRootNode() const;

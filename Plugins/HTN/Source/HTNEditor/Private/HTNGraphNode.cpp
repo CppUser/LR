@@ -17,10 +17,6 @@ void UHTNGraphNode::AllocateDefaultPins()
 
 FText UHTNGraphNode::GetNodeTitle(ENodeTitleType::Type TitleType) const
 {
-	if (NodeInstance)
-	{
-		return FText::FromString(NodeInstance->GetName());
-	}
 	return LOCTEXT("UnknownNode", "Unknown Node");
 }
 

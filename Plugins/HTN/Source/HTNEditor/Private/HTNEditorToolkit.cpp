@@ -8,7 +8,7 @@
 
 #define LOCTEXT_NAMESPACE "HTNEditor"
 
-HTNEditorToolkit::HTNEditorToolkit() : HTN(nullptr)
+HTNEditorToolkit::HTNEditorToolkit() : HTNAsset(nullptr)
 {
 }
 
@@ -16,8 +16,13 @@ HTNEditorToolkit::~HTNEditorToolkit()
 {
 }
 
+class UHTN* HTNEditorToolkit::GetHTN() const
+{
+	return HTNAsset;
+}
+
 void HTNEditorToolkit::InitEditorToolkit(const EToolkitMode::Type Mode,
-	const TSharedPtr<class IToolkitHost>& InitToolkitHost, class UHTN* InHTN)
+                                         const TSharedPtr<class IToolkitHost>& InitToolkitHost, class UHTN* InHTN)
 {
 	HTNAsset = InHTN;
 

@@ -4,10 +4,28 @@
 #include "AssetTypeActions_HTN.h"
 #include "EdGraphUtilities.h"
 #include "HTNEditorToolkit.h"
+#include "HTNGraphNode.h"
+#include "HTNSGraphNode.h"
 #include "IAssetTools.h"
 #include "ISettingsModule.h"
 
 #define LOCTEXT_NAMESPACE "FHTNEditorModule"
+
+namespace 
+{
+	class FGraphPanelNodeFactory_HTN : public FGraphPanelNodeFactory
+	{
+		virtual TSharedPtr<class SGraphNode> CreateNode(UEdGraphNode* Node) const override
+		{
+			if (UHTNGraphNode* HTNNode = Cast<UHTNGraphNode>(Node))
+			{
+				return SNew(HTNSGraphNode, HTNNode);
+			}
+			return nullptr;
+		}
+	};
+	TSharedPtr<FGraphPanelNodeFactory_HTN> GraphNodeFactory;
+}
 
 
 void FHTNEditorModule::StartupModule()
@@ -15,6 +33,9 @@ void FHTNEditorModule::StartupModule()
 	MenuExtensibilityManager = MakeShared<FExtensibilityManager>();
 	ToolBarExtensibilityManager = MakeShared<FExtensibilityManager>();
 
+	FEdGraphUtilities::RegisterVisualNodeFactory(GraphNodeFactory = MakeShared<FGraphPanelNodeFactory_HTN>());
+
+	
 	IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>(TEXT("AssetTools")).Get();
 
 	HTNAssetCategoryBit = AssetTools.RegisterAdvancedAssetCategory(FName(TEXT("HTN")), LOCTEXT("HTNAssetCategory", "HTN"));
@@ -31,6 +52,13 @@ void FHTNEditorModule::ShutdownModule()
 {
 	MenuExtensibilityManager.Reset();
 	ToolBarExtensibilityManager.Reset();
+
+	
+	if (GraphNodeFactory.IsValid())
+	{
+		FEdGraphUtilities::UnregisterVisualNodeFactory(GraphNodeFactory);
+		GraphNodeFactory.Reset();
+	}
 
 	if (FModuleManager::Get().IsModuleLoaded(TEXT("AssetTools")))
 	{

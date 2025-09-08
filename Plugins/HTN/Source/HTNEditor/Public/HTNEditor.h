@@ -36,4 +36,6 @@ private:
 
     TArray<TSharedPtr<IAssetTypeActions>> CreatedAssetTypeActions;
     EAssetTypeCategories::Type HTNAssetCategoryBit;
+
+    
 };

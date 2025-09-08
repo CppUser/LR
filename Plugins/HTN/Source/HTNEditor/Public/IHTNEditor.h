@@ -8,4 +8,6 @@
 
 class HTNEDITOR_API IHTNEditor : public FWorkflowCentricApplication
 {
+public:
+	virtual class UHTN* GetHTN() const = 0;
 };

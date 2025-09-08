@@ -10,7 +10,7 @@
  *  schema defines the rules of your graph - what can connect to what.
  */
 UCLASS(MinimalAPI)
-class HTNEDITOR_API UHTNEdGraphSchema : public UAIGraphSchema
+class UHTNEdGraphSchema : public UAIGraphSchema
 {
 	GENERATED_BODY()
 public:

@@ -14,10 +14,7 @@ class HTNEDITOR_API UHTNGraphNode : public UAIGraphNode
 {
 	GENERATED_BODY()
 public:
-	// The runtime node this represents
-	UPROPERTY()
-	class UHTNNode* NodeInstance;
-    
+
 	// Create the pins for this node
 	virtual void AllocateDefaultPins() override;
     

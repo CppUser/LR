@@ -15,6 +15,8 @@ class HTNEDITOR_API HTNEditorToolkit : public IHTNEditor, public FAIGraphEditor,
 public:
 	HTNEditorToolkit();
 	virtual ~HTNEditorToolkit();
+
+	virtual class UHTN* GetHTN() const override;
 	
 	void InitEditorToolkit(const EToolkitMode::Type Mode, const TSharedPtr<class IToolkitHost>& InitToolkitHost, class UHTN* HTN);
 
@@ -34,6 +36,23 @@ public:
 
 	virtual void NotifyPostChange(const FPropertyChangedEvent& PropertyChangedEvent, FProperty* PropertyThatChanged) override;
 private:
+	TSharedRef<SGraphEditor> CreateGraphEditorWidget();
+    
+	// Spawns the tab with the graph editor
+	TSharedRef<SDockTab> SpawnTab_GraphEditor(const FSpawnTabArgs& Args);
+    
+	// Spawns the details tab
+	TSharedRef<SDockTab> SpawnTab_Details(const FSpawnTabArgs& Args);
+    
+private:
+	// Graph editor widget
+	TSharedPtr<SGraphEditor> GraphEditorWidget;
+    
+	// Details view widget
+	TSharedPtr<IDetailsView> DetailsWidget;
+    
+	// Command list for this editor
+	TSharedPtr<FUICommandList> GraphEditorCommands;
 	
 	class UHTN* HTNAsset;
 };

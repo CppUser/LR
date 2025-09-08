@@ -12,9 +12,11 @@ void UHTNGraph::OnCreated()
 	// Initialize the graph
 }
 
-void UHTNGraph::UpdateAsset()
+void UHTNGraph::UpdateAsset(int32 UpdateFlags)
 {
 	// Sync visual graph to runtime data
+	Super::UpdateAsset(UpdateFlags);
+
 	UHTN* HTNAsset = Cast<UHTN>(GetOuter());
 	if (!HTNAsset) return;
 
@@ -22,7 +24,7 @@ void UHTNGraph::UpdateAsset()
 	// Find root node
 	UHTNRootGraphNode* RootNode = FindRootNode();
 	if (!RootNode) return;
-    
+
 	// Traverse graph and build runtime representation
 	// ... (traverse graph and populate HTNAsset->Nodes)
 }
