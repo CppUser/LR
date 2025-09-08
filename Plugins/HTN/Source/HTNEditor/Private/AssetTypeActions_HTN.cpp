@@ -3,11 +3,14 @@
 #include "HTN.h"
 #include "HTNEditor.h"
 
-#define LOCTEXT_NAMESPACE "AssetTypeActions_HTN"
+
+AssetTypeActions_HTN::AssetTypeActions_HTN(EAssetTypeCategories::Type InAssetCategory) : AssetCategory(InAssetCategory)
+{
+}
 
 FText AssetTypeActions_HTN::GetName() const
 {
-	return LOCTEXT("HTN", "Hierarchical Task Network");
+	return FText::FromString("HTN");
 }
 
 FColor AssetTypeActions_HTN::GetTypeColor() const
@@ -24,7 +27,8 @@ UClass* AssetTypeActions_HTN::GetSupportedClass() const
 uint32 AssetTypeActions_HTN::GetCategories()
 {
 	//return EAssetTypeCategories::; 
-	return IAssetTools::Get().FindAdvancedAssetCategory(TEXT("AI"));
+	//return IAssetTools::Get().FindAdvancedAssetCategory(TEXT("AI"));
+	return AssetCategory;
 }
 
 void AssetTypeActions_HTN::OpenAssetEditor(const TArray<UObject*>& InObjects,
@@ -57,4 +61,3 @@ void AssetTypeActions_HTN::OpenAssetEditor(const TArray<UObject*>& InObjects,
 		}
 	}
 }
-#undef LOCTEXT_NAMESPACE

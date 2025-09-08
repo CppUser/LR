@@ -3,6 +3,7 @@
 #include "AssetToolsModule.h"
 #include "AssetTypeActions_HTN.h"
 #include "EdGraphUtilities.h"
+#include "HTNEditorToolkit.h"
 #include "IAssetTools.h"
 #include "ISettingsModule.h"
 
@@ -14,12 +15,15 @@ void FHTNEditorModule::StartupModule()
 	ToolBarExtensibilityManager = MakeShared<FExtensibilityManager>();
 
 	IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>(TEXT("AssetTools")).Get();
+
+	HTNAssetCategoryBit = AssetTools.RegisterAdvancedAssetCategory(FName(TEXT("HTN")), LOCTEXT("HTNAssetCategory", "HTN"));
+	
 	const auto RegisterAssetTypeAction = [&](TSharedRef<IAssetTypeActions> Action)
 	{
 		AssetTools.RegisterAssetTypeActions(Action);
 		CreatedAssetTypeActions.Add(Action);
 	};
-	RegisterAssetTypeAction(MakeShared<AssetTypeActions_HTN>());
+	RegisterAssetTypeAction(MakeShared<AssetTypeActions_HTN>(HTNAssetCategoryBit));
 }
 
 void FHTNEditorModule::ShutdownModule()
@@ -41,18 +45,15 @@ void FHTNEditorModule::ShutdownModule()
 	CreatedAssetTypeActions.Empty();
 }
 
-TSharedRef<FHTNEditorModule> FHTNEditorModule::CreateEditor(const EToolkitMode::Type Mode,
+TSharedRef<IHTNEditor> FHTNEditorModule::CreateEditor(const EToolkitMode::Type Mode,
                                                             const TSharedPtr<IToolkitHost>& InitToolkitHost, class UHTN* HTN)
 {
-	TSharedRef<FHTNEditorModule> HTNEditor = MakeShared<FHTNEditorModule>();
-	HTNEditor->InitEditor(Mode, InitToolkitHost, HTN);
+	TSharedRef<HTNEditorToolkit> HTNEditor = MakeShared<HTNEditorToolkit>();
+	HTNEditor->InitEditorToolkit(Mode, InitToolkitHost, HTN);
 	return HTNEditor;
 }
 
-void FHTNEditorModule::InitEditor(const EToolkitMode::Type Mode, const TSharedPtr<class IToolkitHost>& InitToolkitHost,
-	class UHTN* HTN)
-{
-}
+
 
 #undef LOCTEXT_NAMESPACE
     
