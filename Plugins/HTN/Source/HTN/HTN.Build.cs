@@ -12,22 +12,21 @@ public class HTN : ModuleRules
 			new string[]
 			{
 				"Core",
-				"GameplayTasks",
-				"AIModule",
-				"GameplayTags"
+				"CoreUObject",
+				"Engine",
+				"GameplayTags",     
+				"AIModule",          
+				"GameplayTasks",     
+				"NavigationSystem"   
 			}
 		);
 		
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Projects",
-				"InputCore",
-				"CoreUObject",
-				"Engine",
 				"Slate",
 				"SlateCore",
-				"NavigationSystem"
+				"Json"
 			}
 		);
 	}

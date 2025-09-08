@@ -1,41 +1,27 @@
-﻿#pragma once
+﻿// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
 
 #include "CoreMinimal.h"
-#include "AssetTypeCategories.h"
-#include "Modules/ModuleInterface.h"
-#include "Modules/ModuleManager.h"
-#include "Toolkits/AssetEditorToolkit.h"
+#include "WorkflowOrientedApp/WorkflowCentricApplication.h"
 
-class IHTNEditor;
-struct FGraphPanelNodeFactory;
-struct FGraphNodeClassHelper;
-class IAssetTypeActions;
 
-class FHTNEditorModule : public IModuleInterface, public IHasMenuExtensibility, public IHasToolBarExtensibility
+class HTNEDITOR_API FHTNEditor : public FWorkflowCentricApplication
 {
 public:
-    virtual TSharedPtr<FExtensibilityManager> GetMenuExtensibilityManager() override { return MenuExtensibilityManager; }
-    virtual TSharedPtr<FExtensibilityManager> GetToolBarExtensibilityManager() override { return ToolBarExtensibilityManager; }
-
-    virtual void StartupModule() override;
-    virtual void ShutdownModule() override;
-
-    virtual TSharedRef<IHTNEditor> CreateEditor(
-        const EToolkitMode::Type Mode,
-        const TSharedPtr<IToolkitHost>& InitToolkitHost,
-        class UHTN* HTN);
-
-
-    static FHTNEditorModule& Get()
-    {
-        return FModuleManager::LoadModuleChecked<FHTNEditorModule>("HTNEditor");
-    }
-private:
-    TSharedPtr<FExtensibilityManager> MenuExtensibilityManager;
-    TSharedPtr<FExtensibilityManager> ToolBarExtensibilityManager;
-
-    TArray<TSharedPtr<IAssetTypeActions>> CreatedAssetTypeActions;
-    EAssetTypeCategories::Type HTNAssetCategoryBit;
-
+	FHTNEditor();
+	virtual ~FHTNEditor();
     
+	// Initialization
+	void InitHTNEditor(EToolkitMode::Type Mode, TSharedPtr<IToolkitHost> Host,class UHTN* HTN);
+
+	
+	virtual FName GetToolkitFName() const override;
+	virtual FText GetBaseToolkitName() const override;
+	virtual FText GetToolkitName() const override;
+	virtual FString GetWorldCentricTabPrefix() const override;
+	virtual FLinearColor GetWorldCentricTabColorScale() const override;
+	virtual void RegisterTabSpawners(const TSharedRef<FTabManager>& InTabManager) override;
+public:
+	class UHTN* HTNAsset;
 };

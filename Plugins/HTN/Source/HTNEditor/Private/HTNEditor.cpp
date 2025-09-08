@@ -1,89 +1,81 @@
-﻿#include "HTNEditor.h"
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "AssetToolsModule.h"
-#include "AssetTypeActions_HTN.h"
-#include "EdGraphUtilities.h"
-#include "HTNEditorToolkit.h"
-#include "HTNGraphNode.h"
-#include "HTNSGraphNode.h"
-#include "IAssetTools.h"
-#include "ISettingsModule.h"
 
-#define LOCTEXT_NAMESPACE "FHTNEditorModule"
+#include "HTNEditor.h"
+#include "HTN.h"
+#define LOCTEXT_NAMESPACE "HTNEditor"
 
-namespace 
+FHTNEditor::FHTNEditor()
+	:HTNAsset(nullptr)
 {
-	class FGraphPanelNodeFactory_HTN : public FGraphPanelNodeFactory
-	{
-		virtual TSharedPtr<class SGraphNode> CreateNode(UEdGraphNode* Node) const override
-		{
-			if (UHTNGraphNode* HTNNode = Cast<UHTNGraphNode>(Node))
-			{
-				return SNew(HTNSGraphNode, HTNNode);
-			}
-			return nullptr;
-		}
-	};
-	TSharedPtr<FGraphPanelNodeFactory_HTN> GraphNodeFactory;
 }
 
-
-void FHTNEditorModule::StartupModule()
+FHTNEditor::~FHTNEditor()
 {
-	MenuExtensibilityManager = MakeShared<FExtensibilityManager>();
-	ToolBarExtensibilityManager = MakeShared<FExtensibilityManager>();
-
-	FEdGraphUtilities::RegisterVisualNodeFactory(GraphNodeFactory = MakeShared<FGraphPanelNodeFactory_HTN>());
-
-	
-	IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>(TEXT("AssetTools")).Get();
-
-	HTNAssetCategoryBit = AssetTools.RegisterAdvancedAssetCategory(FName(TEXT("HTN")), LOCTEXT("HTNAssetCategory", "HTN"));
-	
-	const auto RegisterAssetTypeAction = [&](TSharedRef<IAssetTypeActions> Action)
-	{
-		AssetTools.RegisterAssetTypeActions(Action);
-		CreatedAssetTypeActions.Add(Action);
-	};
-	RegisterAssetTypeAction(MakeShared<AssetTypeActions_HTN>(HTNAssetCategoryBit));
 }
 
-void FHTNEditorModule::ShutdownModule()
+void FHTNEditor::InitHTNEditor(EToolkitMode::Type Mode, TSharedPtr<IToolkitHost> Host, class UHTN* HTN)
 {
-	MenuExtensibilityManager.Reset();
-	ToolBarExtensibilityManager.Reset();
+	HTNAsset = HTN;
 
+	TArray<UObject*> ObjectsToEdit;
+	if (HTNAsset) ObjectsToEdit.Add(HTNAsset);
 	
-	if (GraphNodeFactory.IsValid())
+	const TArray<UObject*>* const EditedObjects = GetObjectsCurrentlyBeingEdited();
+	const bool bIsAlreadyEditingObjects = EditedObjects && EditedObjects->Num();
+	if (!bIsAlreadyEditingObjects)
 	{
-		FEdGraphUtilities::UnregisterVisualNodeFactory(GraphNodeFactory);
-		GraphNodeFactory.Reset();
+
+		FAssetEditorToolkit::InitAssetEditor(
+			Mode,
+			Host,
+			FName(TEXT("HTNApp")), //TODO: Pull it as ID globally ? 
+			FTabManager::NewLayout(TEXT("NullLayout"))->AddArea(FTabManager::NewPrimaryArea()),
+			true,
+			true,
+			ObjectsToEdit
+		);
 	}
-
-	if (FModuleManager::Get().IsModuleLoaded(TEXT("AssetTools")))
+	else
 	{
-		IAssetTools& AssetTools = FModuleManager::GetModuleChecked<FAssetToolsModule>(TEXT("AssetTools")).Get();
-		for (TSharedPtr<IAssetTypeActions>& Action : CreatedAssetTypeActions)
+		for (UObject* const ObjectToEdit : ObjectsToEdit)
 		{
-			if (Action.IsValid())
+			if (!EditedObjects->Contains(ObjectToEdit))
 			{
-				AssetTools.UnregisterAssetTypeActions(Action.ToSharedRef());
+				AddEditingObject(ObjectToEdit);
 			}
 		}
 	}
-	CreatedAssetTypeActions.Empty();
 }
 
-TSharedRef<IHTNEditor> FHTNEditorModule::CreateEditor(const EToolkitMode::Type Mode,
-                                                            const TSharedPtr<IToolkitHost>& InitToolkitHost, class UHTN* HTN)
+FName FHTNEditor::GetToolkitFName() const
 {
-	TSharedRef<HTNEditorToolkit> HTNEditor = MakeShared<HTNEditorToolkit>();
-	HTNEditor->InitEditorToolkit(Mode, InitToolkitHost, HTN);
-	return HTNEditor;
+	return FName(TEXT("HTNEditor"));
 }
 
+FText FHTNEditor::GetBaseToolkitName() const
+{
+	return LOCTEXT("AppLabel", "HTN Editor");
+}
 
+FText FHTNEditor::GetToolkitName() const
+{
+	return FWorkflowCentricApplication::GetToolkitName();
+}
+
+FString FHTNEditor::GetWorldCentricTabPrefix() const
+{
+	return LOCTEXT("WorldCentricTabPrefix", "HTN ").ToString();
+}
+
+FLinearColor FHTNEditor::GetWorldCentricTabColorScale() const
+{
+	return FColor::Red;
+}
+
+void FHTNEditor::RegisterTabSpawners(const TSharedRef<FTabManager>& InTabManager)
+{
+	FWorkflowCentricApplication::RegisterTabSpawners(InTabManager);
+}
 
 #undef LOCTEXT_NAMESPACE
-    
-IMPLEMENT_MODULE(FHTNEditorModule, HTNEditor)

@@ -2,7 +2,6 @@
 
 
 #include "HTNFactory.h"
-
 #include "HTN.h"
 
 UHTNFactory::UHTNFactory()
@@ -13,7 +12,7 @@ UHTNFactory::UHTNFactory()
 }
 
 UObject* UHTNFactory::FactoryCreateNew(UClass* Class, UObject* InParent, FName Name, EObjectFlags Flags,
-                                       UObject* Context, FFeedbackContext* Warn)
+									   UObject* Context, FFeedbackContext* Warn)
 {
 	return NewObject<UHTN>(InParent, Class, Name, Flags);
 }
