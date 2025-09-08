@@ -28,7 +28,7 @@ public:
 
     static FHTNEditorModule& Get()
     {
-        return FModuleManager::LoadModuleChecked<FHTNEditorModule>("HTNModule");
+        return FModuleManager::LoadModuleChecked<FHTNEditorModule>("HTNEditor");
     }
 private:
     TSharedPtr<FExtensibilityManager> MenuExtensibilityManager;
