@@ -3,6 +3,8 @@
 
 #include "HTNFactory.h"
 #include "HTN.h"
+#include "AssetRegistry/AssetRegistryModule.h"
+#include "BehaviorTree/BlackboardData.h"
 
 UHTNFactory::UHTNFactory()
 {
@@ -14,5 +16,23 @@ UHTNFactory::UHTNFactory()
 UObject* UHTNFactory::FactoryCreateNew(UClass* Class, UObject* InParent, FName Name, EObjectFlags Flags,
 									   UObject* Context, FFeedbackContext* Warn)
 {
-	return NewObject<UHTN>(InParent, Class, Name, Flags);
+	UHTN* NewHTN = NewObject<UHTN>(InParent, Class, Name, Flags);
+    
+	if (!NewHTN->BlackboardAsset)
+	{
+		FAssetRegistryModule& AssetRegistry = 
+			FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
+        
+		TArray<FAssetData> BlackboardAssets;
+		FTopLevelAssetPath ClassPath = UBlackboardData::StaticClass()->GetClassPathName();
+		AssetRegistry.Get().GetAssetsByClass(ClassPath, BlackboardAssets);
+        
+		if (BlackboardAssets.Num() > 0)
+		{
+			NewHTN->BlackboardAsset = Cast<UBlackboardData>(
+				BlackboardAssets[0].GetAsset());
+		}
+	}
+    
+	return NewHTN;
 }

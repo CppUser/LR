@@ -11,8 +11,13 @@ class HTN_API UHTN : public UObject
 {
 	GENERATED_BODY()
 public:
+	bool ValidateAsset(TArray<FString>& Errors);
+	
 #if WITH_EDITORONLY_DATA
 	UPROPERTY()
 	class UEdGraph* Graph;
 #endif
+
+	UPROPERTY()
+	class UBlackboardData* BlackboardAsset;
 };
