@@ -52,6 +52,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "LR|Ability")
 	ULRAbilitySystemComponent* GetLRAbilitySystemComponentFromActorInfo() const;
+
+	UFUNCTION(BlueprintCallable, Category = "LR|Ability")
+	AController* GetControllerFromActorInfo() const;
 	
 	void TryActivateAbilityOnSpawn(const FGameplayAbilityActorInfo* ActorInfo,const FGameplayAbilitySpec& Spec) const;
 	
