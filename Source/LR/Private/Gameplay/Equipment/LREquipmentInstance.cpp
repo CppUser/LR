@@ -10,6 +10,139 @@ ULREquipmentInstance::ULREquipmentInstance(const FObjectInitializer& ObjectIniti
 {
 }
 
+void ULREquipmentInstance::Tick(float DeltaTime)
+{
+}
+
+void ULREquipmentInstance::BeginDestroy()
+{
+	UObject::BeginDestroy();
+}
+
+void ULREquipmentInstance::AddEvolutionProgress(EEquipmentEvolutionTrigger Trigger, float Amount)
+{
+}
+
+bool ULREquipmentInstance::CanEvolveToNextStage() const
+{
+}
+
+void ULREquipmentInstance::TriggerEvolution()
+{
+}
+
+float ULREquipmentInstance::GetEvolutionProgress(EEquipmentEvolutionTrigger Trigger) const
+{
+}
+
+void ULREquipmentInstance::ModifyMood(float Amount, const FGameplayTag& Reason)
+{
+}
+
+void ULREquipmentInstance::RememberAction(const FGameplayTag& ActionTag)
+{
+}
+
+bool ULREquipmentInstance::AttemptActivation()
+{
+}
+
+void ULREquipmentInstance::TriggerDialogue(const FString& Situation)
+{
+}
+
+void ULREquipmentInstance::FeedItem(float Amount)
+{
+}
+
+bool ULREquipmentInstance::IsItemAlive() const
+{
+}
+
+void ULREquipmentInstance::KillItem()
+{
+}
+
+float ULREquipmentInstance::GetLifespanRemaining() const
+{
+}
+
+void ULREquipmentInstance::AttemptIdentification(const FGameplayTag& Method, float Power)
+{
+}
+
+void ULREquipmentInstance::ForceReveal()
+{
+}
+
+void ULREquipmentInstance::OnEnvironmentChanged(const FGameplayTag& BiomeTag)
+{
+}
+
+void ULREquipmentInstance::UpdateResonance(const TArray<ULREquipmentInstance*>& OtherEquipment)
+{
+}
+
+float ULREquipmentInstance::GetOverallEffectiveness() const
+{
+}
+
+float ULREquipmentInstance::GetDamageMultiplier() const
+{
+}
+
+float ULREquipmentInstance::GetDefenseMultiplier() const
+{
+}
+
+void ULREquipmentInstance::OnKillEnemy(AActor* Enemy, float Damage)
+{
+}
+
+void ULREquipmentInstance::OnTakeDamage(float Damage, AActor* Attacker)
+{
+}
+
+void ULREquipmentInstance::OnAbilityUsed(const FGameplayTag& AbilityTag)
+{
+}
+
+void ULREquipmentInstance::OnPlayerAction(const FGameplayTag& ActionTag)
+{
+}
+
+void ULREquipmentInstance::UpdateEvolution(float DeltaTime)
+{
+}
+
+void ULREquipmentInstance::UpdatePersonality(float DeltaTime)
+{
+}
+
+void ULREquipmentInstance::UpdateLivingItem(float DeltaTime)
+{
+}
+
+void ULREquipmentInstance::UpdateMystery(float DeltaTime)
+{
+}
+
+void ULREquipmentInstance::UpdateParasiticEffects(float DeltaTime)
+{
+}
+
+void ULREquipmentInstance::ApplyEvolutionStage(int32 StageIndex)
+{
+}
+
+void ULREquipmentInstance::RemoveEvolutionStage(int32 StageIndex)
+{
+}
+
+void ULREquipmentInstance::ProcessDialogue(const TArray<FText>& PossibleDialogue)
+{
+}
+
 UWorld* ULREquipmentInstance::GetWorld() const
 {
 	if (APawn* OwningPawn = GetPawn())

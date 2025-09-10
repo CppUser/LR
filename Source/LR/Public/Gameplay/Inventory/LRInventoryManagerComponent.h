@@ -11,6 +11,7 @@ class ULRInventoryItemInstance;
 class ULRInventoryManagerComponent;
 struct FInventoryList;
 
+
 USTRUCT(BlueprintType)
 struct FInventoryChangeMessage
 {
