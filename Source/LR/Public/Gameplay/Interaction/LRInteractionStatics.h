@@ -6,15 +6,14 @@
 #include "LRInteractionStatics.generated.h"
 
 class IInteractableTarget;
-/**
- * 
- */
+
 UCLASS()
-class LR_API ULRInteractionStatics : public UBlueprintFunctionLibrary
+class UInteractionStatics : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
+
 public:
-	ULRInteractionStatics();
+	UInteractionStatics();
 
 public:
 	UFUNCTION(BlueprintCallable)
@@ -25,5 +24,4 @@ public:
 
 	static void AppendInteractableTargetsFromOverlapResults(const TArray<FOverlapResult>& OverlapResults, TArray<TScriptInterface<IInteractableTarget>>& OutInteractableTargets);
 	static void AppendInteractableTargetsFromHitResult(const FHitResult& HitResult, TArray<TScriptInterface<IInteractableTarget>>& OutInteractableTargets);
-
 };

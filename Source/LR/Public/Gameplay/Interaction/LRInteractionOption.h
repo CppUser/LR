@@ -1,11 +1,9 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
-#pragma once
-
+﻿#pragma once
 #include "Abilities/GameplayAbility.h"
 #include "LRInteractionOption.generated.h"
 
 class IInteractableTarget;
+class UUserWidget;
 
 USTRUCT(BlueprintType)
 struct FInteractionOption

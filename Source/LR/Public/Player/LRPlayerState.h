@@ -45,4 +45,9 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "LR|PlayerState")
 	TObjectPtr<ULRAbilitySystemComponent> ASC;
 
+	UPROPERTY()
+	TObjectPtr<const class ULRHealthAttribSet> HealthSet;
+	UPROPERTY()
+	TObjectPtr<const class ULRCombatAttribSet> CombatSet;
+
 };

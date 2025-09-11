@@ -7,6 +7,12 @@ public class LR : ModuleRules
 	public LR(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+		
+		PublicIncludePaths.AddRange(
+			new string[] {
+				"LR"
+			}
+		);
 	
 		PublicDependencyModuleNames.AddRange(
 			new string[] {

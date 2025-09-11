@@ -4,14 +4,14 @@
 #include "Gameplay/Interaction/LRInteractionStatics.h"
 
 #include "Engine/OverlapResult.h"
-#include "Gameplay/Interaction/ILRInteractableTarget.h"
+#include "Gameplay/Interaction/LRInteractableTarget.h"
 
-ULRInteractionStatics::ULRInteractionStatics()
-: Super(FObjectInitializer::Get())
+UInteractionStatics::UInteractionStatics()
+	: Super(FObjectInitializer::Get())
 {
 }
 
-AActor* ULRInteractionStatics::GetActorFromInteractableTarget(TScriptInterface<IInteractableTarget> InteractableTarget)
+AActor* UInteractionStatics::GetActorFromInteractableTarget(TScriptInterface<IInteractableTarget> InteractableTarget)
 {
 	if (UObject* Object = InteractableTarget.GetObject())
 	{
@@ -32,7 +32,7 @@ AActor* ULRInteractionStatics::GetActorFromInteractableTarget(TScriptInterface<I
 	return nullptr;
 }
 
-void ULRInteractionStatics::GetInteractableTargetsFromActor(AActor* Actor,
+void UInteractionStatics::GetInteractableTargetsFromActor(AActor* Actor,
 	TArray<TScriptInterface<IInteractableTarget>>& OutInteractableTargets)
 {
 	TScriptInterface<IInteractableTarget> InteractableActor(Actor);
@@ -49,7 +49,7 @@ void ULRInteractionStatics::GetInteractableTargetsFromActor(AActor* Actor,
 	}
 }
 
-void ULRInteractionStatics::AppendInteractableTargetsFromOverlapResults(const TArray<FOverlapResult>& OverlapResults,
+void UInteractionStatics::AppendInteractableTargetsFromOverlapResults(const TArray<FOverlapResult>& OverlapResults,
 	TArray<TScriptInterface<IInteractableTarget>>& OutInteractableTargets)
 {
 	for (const FOverlapResult& Overlap : OverlapResults)
@@ -68,7 +68,7 @@ void ULRInteractionStatics::AppendInteractableTargetsFromOverlapResults(const TA
 	}
 }
 
-void ULRInteractionStatics::AppendInteractableTargetsFromHitResult(const FHitResult& HitResult,
+void UInteractionStatics::AppendInteractableTargetsFromHitResult(const FHitResult& HitResult,
 	TArray<TScriptInterface<IInteractableTarget>>& OutInteractableTargets)
 {
 	TScriptInterface<IInteractableTarget> InteractableActor(HitResult.GetActor());

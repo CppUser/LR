@@ -2,19 +2,23 @@
 
 
 #include "Gameplay/Interaction/Tasks/LRGrantNearbyInteraction.h"
-
-#include "Gameplay/Interaction/ILRInteractableTarget.h"
+#include "AbilitySystemComponent.h"
+#include "Engine/OverlapResult.h"
+#include "Engine/World.h"
+#include "GameFramework/Controller.h"
+#include "Gameplay/Interaction/LRInteractableTarget.h"
 #include "Gameplay/Interaction/LRInteractionOption.h"
 #include "Gameplay/Interaction/LRInteractionQuery.h"
 #include "Gameplay/Interaction/LRInteractionStatics.h"
 #include "Physics/LRCollisionChannels.h"
+#include "TimerManager.h"
 
-ULRGrantNearbyInteraction::ULRGrantNearbyInteraction(const FObjectInitializer& ObjectInitializer)
+UAbilityTask_GrantNearbyInteraction::UAbilityTask_GrantNearbyInteraction(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 }
 
-void ULRGrantNearbyInteraction::Activate()
+void UAbilityTask_GrantNearbyInteraction::Activate()
 {
 	SetWaitingOnAvatar();
 
@@ -22,25 +26,26 @@ void ULRGrantNearbyInteraction::Activate()
 	World->GetTimerManager().SetTimer(QueryTimerHandle, this, &ThisClass::QueryInteractables, InteractionScanRate, true);
 }
 
-ULRGrantNearbyInteraction* ULRGrantNearbyInteraction::GrantAbilitiesForNearbyInteractors(
+UAbilityTask_GrantNearbyInteraction* UAbilityTask_GrantNearbyInteraction::GrantAbilitiesForNearbyInteractors(
 	UGameplayAbility* OwningAbility, float InteractionScanRange, float InteractionScanRate)
 {
-	ULRGrantNearbyInteraction* MyObj = NewAbilityTask<ULRGrantNearbyInteraction>(OwningAbility);
+	UAbilityTask_GrantNearbyInteraction* MyObj = NewAbilityTask<UAbilityTask_GrantNearbyInteraction>(OwningAbility);
 	MyObj->InteractionScanRange = InteractionScanRange;
 	MyObj->InteractionScanRate = InteractionScanRate;
 	return MyObj;
 }
 
-void ULRGrantNearbyInteraction::OnDestroy(bool AbilityEnded)
+void UAbilityTask_GrantNearbyInteraction::OnDestroy(bool AbilityEnded)
 {
 	if (UWorld* World = GetWorld())
 	{
 		World->GetTimerManager().ClearTimer(QueryTimerHandle);
 	}
+	
 	Super::OnDestroy(AbilityEnded);
 }
 
-void ULRGrantNearbyInteraction::QueryInteractables()
+void UAbilityTask_GrantNearbyInteraction::QueryInteractables()
 {
 	UWorld* World = GetWorld();
 	AActor* ActorOwner = GetAvatarActor();
@@ -55,7 +60,7 @@ void ULRGrantNearbyInteraction::QueryInteractables()
 		if (OverlapResults.Num() > 0)
 		{
 			TArray<TScriptInterface<IInteractableTarget>> InteractableTargets;
-			ULRInteractionStatics::AppendInteractableTargetsFromOverlapResults(OverlapResults, OUT InteractableTargets);
+			UInteractionStatics::AppendInteractableTargetsFromOverlapResults(OverlapResults, OUT InteractableTargets);
 			
 			FInteractionQuery InteractionQuery;
 			InteractionQuery.RequestingAvatar = ActorOwner;

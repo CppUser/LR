@@ -4,6 +4,8 @@
 #include "LR/Public/Player/LRPlayerState.h"
 
 #include "AbilitySystem/LRAbilitySet.h"
+#include "AbilitySystem/Attributes/LRCombatAttribSet.h"
+#include "AbilitySystem/Attributes/LRHealthAttribSet.h"
 #include "AbilitySystem/Core/LRAbilitySystemComponent.h"
 #include "Character/LRPawnData.h"
 #include "Components/GameFrameworkComponentManager.h"
@@ -18,6 +20,9 @@ ALRPlayerState::ALRPlayerState(const FObjectInitializer& ObjectInitializer) : Su
 	ASC = ObjectInitializer.CreateDefaultSubobject<ULRAbilitySystemComponent>(this, TEXT("AbilitySystemComponent"));
 	ASC->SetIsReplicated(false);
 	//ASC->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+
+	HealthSet = CreateDefaultSubobject<ULRHealthAttribSet>(TEXT("HealthSet"));
+	CombatSet = CreateDefaultSubobject<ULRCombatAttribSet>(TEXT("CombatSet"));
 
 }
 
