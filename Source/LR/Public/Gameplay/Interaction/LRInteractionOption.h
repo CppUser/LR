@@ -56,6 +56,12 @@ struct FInteractionRequirement
 	// Is line of sight required?
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bRequiresLineOfSight = true;
+	
+	bool CheckRequirements(const AActor* Interactor, const AActor* Target) const
+	{
+		//TODO: Implement me
+		return true;
+	}
 };
 
 
