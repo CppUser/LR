@@ -2,26 +2,36 @@
 
 #pragma once
 
+#include "LRInteractionOption.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "LRInteractionStatics.generated.h"
 
-class IInteractableTarget;
-
+class ILRInteractableTarget;
+/**
+ * 
+ */
 UCLASS()
-class UInteractionStatics : public UBlueprintFunctionLibrary
+class ULRInteractionStatics : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 
 public:
-	UInteractionStatics();
+	ULRInteractionStatics();
 
 public:
 	UFUNCTION(BlueprintCallable)
-	static AActor* GetActorFromInteractableTarget(TScriptInterface<IInteractableTarget> InteractableTarget);
+	static AActor* GetActorFromInteractableTarget(TScriptInterface<ILRInteractableTarget> InteractableTarget);
 
 	UFUNCTION(BlueprintCallable)
-	static void GetInteractableTargetsFromActor(AActor* Actor, TArray<TScriptInterface<IInteractableTarget>>& OutInteractableTargets);
+	static void GetInteractableTargetsFromActor(AActor* Actor, TArray<TScriptInterface<ILRInteractableTarget>>& OutInteractableTargets);
 
-	static void AppendInteractableTargetsFromOverlapResults(const TArray<FOverlapResult>& OverlapResults, TArray<TScriptInterface<IInteractableTarget>>& OutInteractableTargets);
-	static void AppendInteractableTargetsFromHitResult(const FHitResult& HitResult, TArray<TScriptInterface<IInteractableTarget>>& OutInteractableTargets);
+	static void AppendInteractableTargetsFromOverlapResults(const TArray<FOverlapResult>& OverlapResults, TArray<TScriptInterface<ILRInteractableTarget>>& OutInteractableTargets);
+	static void AppendInteractableTargetsFromHitResult(const FHitResult& HitResult, TArray<TScriptInterface<ILRInteractableTarget>>& OutInteractableTargets);
+
+	UFUNCTION(BlueprintPure, Category = "LR|Interaction")
+	static FText GetInteractionVerb(EInteractionType Type);
+
+	UFUNCTION(BlueprintPure, Category = "LR|Interaction")
+	static bool CheckAngleRequirement(const AActor* Interactor, const AActor* Target, float RequiredAngle);
 };
+

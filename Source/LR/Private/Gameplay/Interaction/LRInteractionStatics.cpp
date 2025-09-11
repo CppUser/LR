@@ -6,12 +6,13 @@
 #include "Engine/OverlapResult.h"
 #include "Gameplay/Interaction/LRInteractableTarget.h"
 
-UInteractionStatics::UInteractionStatics()
-	: Super(FObjectInitializer::Get())
+ULRInteractionStatics::ULRInteractionStatics()
+: Super(FObjectInitializer::Get())
 {
 }
 
-AActor* UInteractionStatics::GetActorFromInteractableTarget(TScriptInterface<IInteractableTarget> InteractableTarget)
+AActor* ULRInteractionStatics::GetActorFromInteractableTarget(
+	TScriptInterface<ILRInteractableTarget> InteractableTarget)
 {
 	if (UObject* Object = InteractableTarget.GetObject())
 	{
@@ -25,6 +26,7 @@ AActor* UInteractionStatics::GetActorFromInteractableTarget(TScriptInterface<IIn
 		}
 		else
 		{
+			//TODO: Pop error message ?
 			unimplemented();
 		}
 	}
@@ -32,35 +34,36 @@ AActor* UInteractionStatics::GetActorFromInteractableTarget(TScriptInterface<IIn
 	return nullptr;
 }
 
-void UInteractionStatics::GetInteractableTargetsFromActor(AActor* Actor,
-	TArray<TScriptInterface<IInteractableTarget>>& OutInteractableTargets)
+void ULRInteractionStatics::GetInteractableTargetsFromActor(AActor* Actor,
+	TArray<TScriptInterface<ILRInteractableTarget>>& OutInteractableTargets)
 {
-	TScriptInterface<IInteractableTarget> InteractableActor(Actor);
+	// If the actor is directly interactable, return that.
+	TScriptInterface<ILRInteractableTarget> InteractableActor(Actor);
 	if (InteractableActor)
 	{
 		OutInteractableTargets.Add(InteractableActor);
 	}
 
 	// If the actor isn't interactable, it might have a component that has a interactable interface.
-	TArray<UActorComponent*> InteractableComponents = Actor ? Actor->GetComponentsByInterface(UInteractableTarget::StaticClass()) : TArray<UActorComponent*>();
+	TArray<UActorComponent*> InteractableComponents = Actor ? Actor->GetComponentsByInterface(ULRInteractableTarget::StaticClass()) : TArray<UActorComponent*>();
 	for (UActorComponent* InteractableComponent : InteractableComponents)
 	{
-		OutInteractableTargets.Add(TScriptInterface<IInteractableTarget>(InteractableComponent));
+		OutInteractableTargets.Add(TScriptInterface<ILRInteractableTarget>(InteractableComponent));
 	}
 }
 
-void UInteractionStatics::AppendInteractableTargetsFromOverlapResults(const TArray<FOverlapResult>& OverlapResults,
-	TArray<TScriptInterface<IInteractableTarget>>& OutInteractableTargets)
+void ULRInteractionStatics::AppendInteractableTargetsFromOverlapResults(const TArray<FOverlapResult>& OverlapResults,
+	TArray<TScriptInterface<ILRInteractableTarget>>& OutInteractableTargets)
 {
 	for (const FOverlapResult& Overlap : OverlapResults)
 	{
-		TScriptInterface<IInteractableTarget> InteractableActor(Overlap.GetActor());
+		TScriptInterface<ILRInteractableTarget> InteractableActor(Overlap.GetActor());
 		if (InteractableActor)
 		{
 			OutInteractableTargets.AddUnique(InteractableActor);
 		}
 
-		TScriptInterface<IInteractableTarget> InteractableComponent(Overlap.GetComponent());
+		TScriptInterface<ILRInteractableTarget> InteractableComponent(Overlap.GetComponent());
 		if (InteractableComponent)
 		{
 			OutInteractableTargets.AddUnique(InteractableComponent);
@@ -68,18 +71,30 @@ void UInteractionStatics::AppendInteractableTargetsFromOverlapResults(const TArr
 	}
 }
 
-void UInteractionStatics::AppendInteractableTargetsFromHitResult(const FHitResult& HitResult,
-	TArray<TScriptInterface<IInteractableTarget>>& OutInteractableTargets)
+void ULRInteractionStatics::AppendInteractableTargetsFromHitResult(const FHitResult& HitResult,
+	TArray<TScriptInterface<ILRInteractableTarget>>& OutInteractableTargets)
 {
-	TScriptInterface<IInteractableTarget> InteractableActor(HitResult.GetActor());
+	TScriptInterface<ILRInteractableTarget> InteractableActor(HitResult.GetActor());
 	if (InteractableActor)
 	{
 		OutInteractableTargets.AddUnique(InteractableActor);
 	}
 
-	TScriptInterface<IInteractableTarget> InteractableComponent(HitResult.GetComponent());
+	TScriptInterface<ILRInteractableTarget> InteractableComponent(HitResult.GetComponent());
 	if (InteractableComponent)
 	{
 		OutInteractableTargets.AddUnique(InteractableComponent);
 	}
+}
+
+FText ULRInteractionStatics::GetInteractionVerb(EInteractionType Type)
+{
+	//TODO: Implement me
+	return FText::GetEmpty();
+}
+
+bool ULRInteractionStatics::CheckAngleRequirement(const AActor* Interactor, const AActor* Target, float RequiredAngle)
+{
+	//TODO: Implement me
+	return false;
 }

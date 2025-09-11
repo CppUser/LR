@@ -1,33 +1,94 @@
 ﻿#pragma once
-#include "LRInteractionTypes.h"
+
 #include "Abilities/GameplayAbility.h"
 #include "LRInteractionOption.generated.h"
 
-class IInteractableTarget;
-class UUserWidget;
+class ILRInteractableTarget;
+
+
+UENUM(BlueprintType)
+enum class EInteractionType : uint8
+{
+	None            UMETA(DisplayName = "None"),
+	Collect         UMETA(DisplayName = "Collect/Loot"),
+	Talk            UMETA(DisplayName = "Talk"),
+	Use             UMETA(DisplayName = "Use/Activate"),
+	Examine         UMETA(DisplayName = "Examine"),
+	Mount           UMETA(DisplayName = "Mount/Ride"),
+	Open            UMETA(DisplayName = "Open"),
+	Custom          UMETA(DisplayName = "Custom")
+};
+
+UENUM(BlueprintType)
+enum class EInteractionMethod : uint8
+{
+	Proximity       UMETA(DisplayName = "Proximity Based"),
+	LineTrace       UMETA(DisplayName = "Looking At"),
+	MouseOver       UMETA(DisplayName = "Mouse Over"),
+	Combined        UMETA(DisplayName = "Combined")
+};
 
 USTRUCT(BlueprintType)
-struct FInteractionOption
+struct FInteractionRequirement
+{
+	GENERATED_BODY()
+
+	// Required tags on the interactor
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FGameplayTagContainer RequiredTags;
+
+	// Tags that block this interaction
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FGameplayTagContainer BlockedTags;
+
+	// Minimum distance for interaction
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float MinDistance = 0.0f;
+
+	// Maximum distance for interaction
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float MaxDistance = 500.0f;
+
+	// Required angle (0 = must be behind, 90 = side, 180 = front)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float RequiredAngle = -1.0f; // -1 means any angle
+
+	// Is line of sight required?
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bRequiresLineOfSight = true;
+};
+
+
+USTRUCT(BlueprintType)
+struct FLRInteractionOption
 {
 	GENERATED_BODY()
 
 public:
+	/** The interactable target */
+	UPROPERTY(BlueprintReadWrite)
+	TScriptInterface<ILRInteractableTarget> InteractableTarget;
+	
+	// Type of interaction
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	EInteractionType InteractionType = EInteractionType::Collect;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	EInteractionMethod InteractionMethod = EInteractionMethod::Combined;
-
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 Priority = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FInteractionRequirement Requirements;
-	
-	/** The interactable target */
-	UPROPERTY(BlueprintReadWrite)
-	TScriptInterface<IInteractableTarget> InteractableTarget;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UTexture2D* InteractionIcon = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	USoundBase* InteractionSound = nullptr;
+	
+	
 	/** Simple text the interaction might return */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FText Text;
@@ -35,12 +96,6 @@ public:
 	/** Simple sub-text the interaction might return */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FText SubText;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UTexture2D* InteractionIcon = nullptr;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	USoundBase* InteractionSound = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float InteractionDuration = 0.0f;
@@ -82,7 +137,7 @@ public:
 	//--------------------------------------------------------------
 
 public:
-	FORCEINLINE bool operator==(const FInteractionOption& Other) const
+	FORCEINLINE bool operator==(const FLRInteractionOption& Other) const
 	{
 		return InteractableTarget == Other.InteractableTarget &&
 			InteractionAbilityToGrant == Other.InteractionAbilityToGrant&&
@@ -93,35 +148,14 @@ public:
 			SubText.IdenticalTo(Other.SubText);
 	}
 
-	FORCEINLINE bool operator!=(const FInteractionOption& Other) const
+	FORCEINLINE bool operator!=(const FLRInteractionOption& Other) const
 	{
 		return !operator==(Other);
 	}
 
-	FORCEINLINE bool operator<(const FInteractionOption& Other) const
+	FORCEINLINE bool operator<(const FLRInteractionOption& Other) const
 	{
 		return InteractableTarget.GetInterface() < Other.InteractableTarget.GetInterface();
 	}
 };
-
-
-UCLASS()
-class LR_API ULRInteractionHelpers : public UBlueprintFunctionLibrary
-{
-	GENERATED_BODY()
-public:
-
-	UFUNCTION(BlueprintPure, Category = "LR|Interaction")
-	static FText GetInteractionVerb(EInteractionType Type)
-	{
-		return FText();
-	}
-
-	UFUNCTION(BlueprintPure, Category = "LR|Interaction")
-	static bool CheckAngleRequirement(const AActor* Interactor, const AActor* Target, float RequiredAngle)
-	{
-		return false;
-	}
-};
-
 

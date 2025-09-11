@@ -1,47 +1,67 @@
 ﻿#pragma once
 
-#include "Abilities/GameplayAbility.h"
 #include "LRInteractionOption.h"
+#include "LRInteractionQuery.h"
+#include "LRInteractionStatics.h"
+#include "Abilities/GameplayAbility.h"
 #include "LRInteractableTarget.generated.h"
 
-struct FInteractionQuery;
+class ILRInteractableTarget;
 
-/**  */
-class FInteractionOptionBuilder
+class FLRInteractionOptionBuilder
 {
 public:
-	FInteractionOptionBuilder(TScriptInterface<IInteractableTarget> InterfaceTargetScope, TArray<FInteractionOption>& InteractOptions)
-		: Scope(InterfaceTargetScope)
-		, Options(InteractOptions)
+	FLRInteractionOptionBuilder(TScriptInterface<ILRInteractableTarget> InterfaceTargetScope, TArray<FLRInteractionOption>& InteractOptions, const FLRInteractionQuery& Query)
+	   : Scope(InterfaceTargetScope)
+	   , Options(InteractOptions)
+	   , InteractionQuery(Query) {}
+
+	void AddInteractionOption(const FLRInteractionOption& Option)
 	{
+		
+		FLRInteractionOption ModifiedOption = Option;
+        
+		
+		if (ModifiedOption.Priority == 0)
+		{
+			if (AActor* Instigator = InteractionQuery.RequestingAvatar.Get())
+			{
+				if (AActor* TargetActor = ULRInteractionStatics::GetActorFromInteractableTarget(Scope))
+				{
+					const float Distance = FVector::Distance(Instigator->GetActorLocation(), TargetActor->GetActorLocation());
+					ModifiedOption.Priority = FMath::RoundToInt(1000.0f / FMath::Max(1.0f, Distance));
+				}
+			}
+		}
+        
+		ModifiedOption.InteractableTarget = Scope;
+        
+		Options.Add(ModifiedOption);
 	}
 
-	void AddInteractionOption(const FInteractionOption& Option)
-	{
-		FInteractionOption& OptionEntry = Options.Add_GetRef(Option);
-		OptionEntry.InteractableTarget = Scope;
-	}
+	const FLRInteractionQuery& GetQuery() const { return InteractionQuery; }
 
 private:
-	TScriptInterface<IInteractableTarget> Scope;
-	TArray<FInteractionOption>& Options;
+	TScriptInterface<ILRInteractableTarget> Scope;
+	TArray<FLRInteractionOption>& Options;
+	const FLRInteractionQuery& InteractionQuery;
 };
 
-/**  */
+
 UINTERFACE(MinimalAPI, meta = (CannotImplementInterfaceInBlueprint))
-class UInteractableTarget : public UInterface
+class ULRInteractableTarget : public UInterface
 {
 	GENERATED_BODY()
 };
 
 /**  */
-class IInteractableTarget
+class ILRInteractableTarget
 {
 	GENERATED_BODY()
 
 public:
 	/**  */
-	virtual void GatherInteractionOptions(const FInteractionQuery& InteractQuery, FInteractionOptionBuilder& OptionBuilder) = 0;
+	virtual void GatherInteractionOptions(const FLRInteractionQuery& InteractQuery, FLRInteractionOptionBuilder& OptionBuilder) = 0;
 
 	/**  */
 	virtual void CustomizeInteractionEventData(const FGameplayTag& InteractionEventTag, FGameplayEventData& InOutEventData) { }

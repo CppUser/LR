@@ -32,60 +32,17 @@ protected:
 };
 
 UCLASS(Abstract, Blueprintable)
-class LR_API ALRInteractableActor : public ALRActor, public IInteractableTarget
+class LR_API ALRInteractableActor : public ALRActor, public ILRInteractableTarget
 {
 	GENERATED_BODY()
 
 public:
 	ALRInteractableActor(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
-	virtual void GatherInteractionOptions(const FInteractionQuery& InteractQuery, FInteractionOptionBuilder& OptionBuilder) override;
+	virtual void GatherInteractionOptions(const FLRInteractionQuery& InteractQuery, FLRInteractionOptionBuilder& OptionBuilder) override;
 
 	virtual void CustomizeInteractionEventData(const FGameplayTag& InteractionEventTag, 
 		FGameplayEventData& InOutEventData) override;
-
-	// Check if actor can provide specific interaction type
-	UFUNCTION(BlueprintPure, Category = "LR|Interaction")
-	bool CanProvideInteraction(EInteractionType Type, const AActor* Interactor) const;
-
-	// Called when interaction starts
-	UFUNCTION(BlueprintImplementableEvent, Category = "LR|Interaction")
-	void OnInteractionStarted(EInteractionType Type, AActor* Interactor);
-
-	// Called when interaction completes
-	UFUNCTION(BlueprintImplementableEvent, Category = "LR|Interaction")
-	void OnInteractionCompleted(EInteractionType Type, AActor* Interactor);
-
-	// Called when interaction is interrupted
-	UFUNCTION(BlueprintImplementableEvent, Category = "LR|Interaction")
-	void OnInteractionInterrupted(EInteractionType Type, AActor* Interactor);
-
-protected:
-	// Configure available interactions
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interactions")
-	TArray<FInteractionOption> AvailableInteractions;
-
-	// Dynamic state flags
-	UPROPERTY(BlueprintReadWrite, Category = "Interactions")
-	bool bIsLootable = true;
-
-	UPROPERTY(BlueprintReadWrite, Category = "Interactions")
-	bool bIsUsable = true;
-
-	UPROPERTY(BlueprintReadWrite, Category = "Interactions")
-	bool bCanBePickpocketed = false;
-
-	UPROPERTY(BlueprintReadWrite, Category = "Interactions")
-	bool bCanBeStealthKilled = false;
-
-	// Additional properties for specific interaction types
-	// UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Loot")
-	// TArray<TSubclassOf<class AItem>> LootItems;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Loot")
-	int32 MinLootCount = 1;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Loot")
-	int32 MaxLootCount = 3;
+	
 	
 };
