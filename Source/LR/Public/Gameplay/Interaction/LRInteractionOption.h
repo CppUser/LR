@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "LRInteractionTypes.h"
 #include "Abilities/GameplayAbility.h"
 #include "LRInteractionOption.generated.h"
 
@@ -11,6 +12,18 @@ struct FInteractionOption
 	GENERATED_BODY()
 
 public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	EInteractionType InteractionType = EInteractionType::Collect;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	EInteractionMethod InteractionMethod = EInteractionMethod::Combined;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 Priority = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FInteractionRequirement Requirements;
+	
 	/** The interactable target */
 	UPROPERTY(BlueprintReadWrite)
 	TScriptInterface<IInteractableTarget> InteractableTarget;
@@ -22,6 +35,21 @@ public:
 	/** Simple sub-text the interaction might return */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FText SubText;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UTexture2D* InteractionIcon = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	USoundBase* InteractionSound = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float InteractionDuration = 0.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bCanBeInterrupted = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FGameplayTag InteractionTag;
 
 	// METHODS OF INTERACTION
 	//--------------------------------------------------------------
@@ -75,3 +103,25 @@ public:
 		return InteractableTarget.GetInterface() < Other.InteractableTarget.GetInterface();
 	}
 };
+
+
+UCLASS()
+class LR_API ULRInteractionHelpers : public UBlueprintFunctionLibrary
+{
+	GENERATED_BODY()
+public:
+
+	UFUNCTION(BlueprintPure, Category = "LR|Interaction")
+	static FText GetInteractionVerb(EInteractionType Type)
+	{
+		return FText();
+	}
+
+	UFUNCTION(BlueprintPure, Category = "LR|Interaction")
+	static bool CheckAngleRequirement(const AActor* Interactor, const AActor* Target, float RequiredAngle)
+	{
+		return false;
+	}
+};
+
+
