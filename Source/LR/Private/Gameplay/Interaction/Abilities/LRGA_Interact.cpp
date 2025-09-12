@@ -3,6 +3,7 @@
 
 #include "Gameplay/Interaction/Abilities/LRGA_Interact.h"
 #include "NativeGameplayTags.h"
+#include "Gameplay/Interaction/LRInteractableTarget.h"
 #include "Gameplay/Interaction/LRInteractionAttribSet.h"
 #include "Gameplay/Interaction/LRInteractionOption.h"
 #include "Gameplay/Interaction/LRInteractionStatics.h"
@@ -28,22 +29,18 @@ void ULRGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	//TODO: Need to properly determine interaction Method
 	CurrentInteractionMethod = DefaultInteractionMethod;
 	
-	if (bShowDebugInfo)
-	{
-		GetWorld()->GetTimerManager().SetTimer(DebugDrawTimerHandle, this, 
-			&ThisClass::DrawDebugInfo, 0.1f, true);
-	}
-	
 	UAbilitySystemComponent* AbilitySystem = GetAbilitySystemComponentFromActorInfo();
 	if (AbilitySystem)
 	{
+		//TODO: Should i handle this task simply for proximity and grant required ability ?
 		ULRScanForInteractables* Task = ULRScanForInteractables::ScanForInteractables(this,
 			GetModifiedInteractionRange(),
 			GetInteractionScanRate(),
 			GetInteractionAngle(),
 			true, //TODO: Need to implement
 			true, //TODO Need to implement properly IsActorInInteractionCone checks if actor in cone
-			CurrentInteractionMethod); 
+			CurrentInteractionMethod,
+			bShowDebugInfo); 
 		Task->ReadyForActivation();
 	}
 	
@@ -61,6 +58,52 @@ void ULRGA_Interact::UpdateInteractionOption(const TArray<FLRInteractionOption>&
 
 void ULRGA_Interact::TriggerInteraction(int32 OptionIndex)
 {
+	if (!CurrentOptions.IsValidIndex(OptionIndex))
+		return;
+
+	UAbilitySystemComponent* AbilitySystem = GetAbilitySystemComponentFromActorInfo();
+	if (!AbilitySystem)
+		return;
+
+	const FLRInteractionOption& InteractionOption = CurrentOptions[0];
+	
+	AActor* Instigator = GetAvatarActorFromActorInfo();
+	AActor* InteractableTargetActor = ULRInteractionStatics::GetActorFromInteractableTarget(InteractionOption.InteractableTarget);
+
+	FGameplayEventData Payload;
+	Payload.EventTag = TAG_Ability_Interaction_Activate;
+	Payload.Instigator = Instigator;
+	Payload.Target = InteractableTargetActor;
+
+	if (InteractionOption.InteractableTarget)
+	{
+		InteractionOption.InteractableTarget->CustomizeInteractionEventData(TAG_Ability_Interaction_Activate, Payload);
+	}
+
+	if (InteractionOption.TargetAbilitySystem && InteractionOption.TargetInteractionAbilityHandle.IsValid())
+	{
+		AActor* TargetActor = const_cast<AActor*>(ToRawPtr(Payload.Target));
+        
+		FGameplayAbilityActorInfo ActorInfo;
+		ActorInfo.InitFromActor(InteractableTargetActor, TargetActor, InteractionOption.TargetAbilitySystem);
+
+		InteractionOption.TargetAbilitySystem->TriggerAbilityFromGameplayEvent(
+			InteractionOption.TargetInteractionAbilityHandle,
+			&ActorInfo,
+			TAG_Ability_Interaction_Activate,
+			&Payload,
+			*InteractionOption.TargetAbilitySystem
+		);
+	}
+	// Otherwise, if there's an ability to grant, try to activate it
+	else if (InteractionOption.InteractionAbilityToGrant)
+	{
+		FGameplayAbilitySpec* Spec = AbilitySystem->FindAbilitySpecFromClass(InteractionOption.InteractionAbilityToGrant);
+		if (Spec)
+		{
+			AbilitySystem->TryActivateAbility(Spec->Handle);
+		}
+	}
 }
 
 float ULRGA_Interact::GetModifiedInteractionRange() const
@@ -130,51 +173,5 @@ bool ULRGA_Interact::IsActorInInteractionCone(const AActor* Target) const
 	return AngleDegrees <= ConeHalfAngle;
 }
 
-void ULRGA_Interact::DrawDebugInfo() const
-{
-	const AActor* Avatar = GetAvatarActorFromActorInfo();
-	if (!Avatar) return;
 
-	UWorld* World = Avatar->GetWorld();
-	if (!World) return;
-
-	FVector Location = Avatar->GetActorLocation();
-	float Range = GetModifiedInteractionRange();
-	float Angle = GetInteractionAngle();
-
-	// Draw interaction sphere
-	DrawDebugSphere(World, Location, Range, 32, FColor::Yellow, false, 0.1f);
-
-	// Draw interaction cone
-	if (Angle < 180.0f)
-	{
-		FVector Forward = Avatar->GetActorForwardVector();
-		float HalfAngleRad = FMath::DegreesToRadians(Angle * 0.5f);
-        
-		// Draw cone lines
-		FVector LeftDir = Forward.RotateAngleAxis(-Angle * 0.5f, FVector::UpVector);
-		FVector RightDir = Forward.RotateAngleAxis(Angle * 0.5f, FVector::UpVector);
-        
-		DrawDebugLine(World, Location, Location + LeftDir * Range, FColor::Green, false, 0.1f, 0, 2.0f);
-		DrawDebugLine(World, Location, Location + RightDir * Range, FColor::Green, false, 0.1f, 0, 2.0f);
-		DrawDebugLine(World, Location, Location + Forward * Range, FColor::Red, false, 0.1f, 0, 2.0f);
-	}
-
-	// Draw current interaction options
-	for (const auto& Option : CurrentOptions)
-	{
-		if (AActor* TargetActor = ULRInteractionStatics::GetActorFromInteractableTarget(Option.InteractableTarget))
-		{
-			FColor DebugColor = FColor::Blue;
-            
-			DrawDebugSphere(World, TargetActor->GetActorLocation(), 50.0f, 16, DebugColor, false, 0.1f);
-			DrawDebugLine(World, Location, TargetActor->GetActorLocation(), DebugColor, false, 0.1f);
-            
-			// Draw interaction type text
-			FString TypeText = UEnum::GetValueAsString(Option.InteractionType);
-			DrawDebugString(World, TargetActor->GetActorLocation() + FVector(0, 0, 100), 
-				TypeText, nullptr, DebugColor, 0.1f);
-		}
-	}
-}
 

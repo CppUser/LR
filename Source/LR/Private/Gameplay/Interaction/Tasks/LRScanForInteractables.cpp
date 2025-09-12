@@ -17,7 +17,7 @@ ULRScanForInteractables::ULRScanForInteractables(const FObjectInitializer& Objec
 }
 
 ULRScanForInteractables* ULRScanForInteractables::ScanForInteractables(UGameplayAbility* OwningAbility, float InScanRange,
-	float InScanRate, float InScanAngle, bool bInRequireLineOfSight, bool bInScanInCone, EInteractionMethod InMethod)
+	float InScanRate, float InScanAngle, bool bInRequireLineOfSight, bool bInScanInCone, EInteractionMethod InMethod, bool bShowDebugInfo)
 {
 	ULRScanForInteractables* MyTask = NewAbilityTask<ULRScanForInteractables>(OwningAbility);
 	MyTask->ScanRange = InScanRange;
@@ -26,6 +26,7 @@ ULRScanForInteractables* ULRScanForInteractables::ScanForInteractables(UGameplay
 	MyTask->bRequireLineOfSight = bInRequireLineOfSight;
 	MyTask->bScanInCone = bInScanInCone;
 	MyTask->InteractionMethod = InMethod;
+	MyTask->bShowDebugInfo = bShowDebugInfo;
 	return MyTask;
 }
 
@@ -78,6 +79,48 @@ void ULRScanForInteractables::PerformScan()
 		ScanLineTrace();
 		break;
 	}
+
+	// if (bShowDebugInfo)
+	// {
+	// 	AActor* Avatar = Ability ? Ability->GetCurrentActorInfo()->AvatarActor.Get() : nullptr;
+	// 	if (!Avatar) return;
+	//
+	// 	UWorld* World = Avatar->GetWorld();
+	// 	if (!World) return;
+	//
+	// 	FVector Location = Avatar->GetActorLocation();
+	// 	DrawDebugSphere(World, Location, ScanRange, 32, FColor::Yellow, false, 0.1f);
+	//
+	// 	if (ScanAngle < 180.0f)
+	// 	{
+	// 		TArray<AActor*> ActorsToIgnore;
+	// 		ActorsToIgnore.Add(Avatar);
+	//
+	// 		const bool bTraceComplex = false;
+	// 		FCollisionQueryParams Params(SCENE_QUERY_STAT(ULRScanForInteractables), bTraceComplex);
+	// 		Params.AddIgnoredActors(ActorsToIgnore);
+	// 		//TODO: Aim with controller
+	// 		
+	// 		FVector TraceEnd;
+	// 		AimWithPlayerController(Avatar, Params, Location, ScanRange, OUT TraceEnd,false);
+	//
+	//
+	// 		FHitResult OutHitResult;
+	// 		LineTrace(OutHitResult, World, Location, TraceEnd, TraceProfile.Name, Params);
+	//
+	// 		
+	// 		FVector Forward = Avatar->GetActorForwardVector();
+	// 		float HalfAngleRad = FMath::DegreesToRadians(ScanAngle * 0.5f);
+ //        
+	// 		// Draw cone lines
+	// 		FVector LeftDir = Forward.RotateAngleAxis(-ScanAngle * 0.5f, FVector::UpVector);
+	// 		FVector RightDir = Forward.RotateAngleAxis(ScanAngle * 0.5f, FVector::UpVector);
+ //        
+	// 		DrawDebugLine(World, Location, Location + LeftDir * ScanRange, FColor::Green, false, 0.1f, 0, 2.0f);
+	// 		DrawDebugLine(World, Location, Location + RightDir * ScanRange, FColor::Green, false, 0.1f, 0, 2.0f);
+	// 		DrawDebugLine(World, Location, OutHitResult.Location + Forward * ScanRange, FColor::Red, false, 0.1f, 0, 2.0f);
+	// 	}
+	// }
 }
 
 void ULRScanForInteractables::ScanProximity()
@@ -105,6 +148,7 @@ void ULRScanForInteractables::ScanProximity()
 	{
 		AActor* OverlapActor = Result.GetActor();
 		if (!OverlapActor) continue;
+		
 
 		// Check if in scan area (cone or full circle)
 		if (!IsInScanArea(OverlapActor)) continue;
@@ -245,18 +289,16 @@ void ULRScanForInteractables::ProcessInteractableTargets(const TArray<TScriptInt
             AActor* TargetActor = ULRInteractionStatics::GetActorFromInteractableTarget(Target);
             if (EnhancedOption.Requirements.CheckRequirements(Avatar, TargetActor))
             {
-            	if (UAbilitySystemComponent* ASC = EnhancedOption.TargetAbilitySystem.Get())
+            	
+            	// Grant ability if needed
+            	if (EnhancedOption.InteractionAbilityToGrant && AbilitySystemComponent.Get())
             	{
-            		// Grant ability if needed
-            		if (EnhancedOption.InteractionAbilityToGrant && ASC)
+            		FObjectKey ObjectKey(EnhancedOption.InteractionAbilityToGrant);
+            		if (!GrantedAbilityCache.Contains(ObjectKey))
             		{
-            			FObjectKey ObjectKey(EnhancedOption.InteractionAbilityToGrant);
-            			if (!GrantedAbilityCache.Contains(ObjectKey))
-            			{
-            				FGameplayAbilitySpec Spec(EnhancedOption.InteractionAbilityToGrant, 1, INDEX_NONE, this);
-            				FGameplayAbilitySpecHandle Handle = ASC->GiveAbility(Spec);
-            				GrantedAbilityCache.Add(ObjectKey, Handle);
-            			}
+            			FGameplayAbilitySpec Spec(EnhancedOption.InteractionAbilityToGrant, 1, INDEX_NONE, this);
+            			FGameplayAbilitySpecHandle Handle = AbilitySystemComponent->GiveAbility(Spec);
+            			GrantedAbilityCache.Add(ObjectKey, Handle);
             		}
             	}
                 
@@ -317,5 +359,88 @@ void ULRScanForInteractables::UpdateCachedOptions(const TArray<FLRInteractionOpt
 	{
 		CachedOptions = SortedOptions;
 		OnInteractablesFound.Broadcast(CachedOptions);
+	}
+}
+
+void ULRScanForInteractables::AimWithPlayerController(const AActor* InSourceActor, FCollisionQueryParams Params,
+	const FVector& TraceStart, float MaxRange, FVector& OutTraceEnd, bool bIgnorePitch) const
+{
+	APlayerController* PC = Ability->GetCurrentActorInfo()->PlayerController.Get();
+	check(PC);
+
+	FVector ViewStart;
+	FRotator ViewRot;
+	PC->GetPlayerViewPoint(ViewStart, ViewRot);
+
+	const FVector ViewDir = ViewRot.Vector();
+	FVector ViewEnd = ViewStart + (ViewDir * MaxRange);
+
+	ClipCameraRayToAbilityRange(ViewStart, ViewDir, TraceStart, MaxRange, ViewEnd);
+
+	FHitResult HitResult;
+	LineTrace(HitResult, InSourceActor->GetWorld(), ViewStart, ViewEnd, TraceProfile.Name, Params);
+
+	const bool bUseTraceResult = HitResult.bBlockingHit && (FVector::DistSquared(TraceStart, HitResult.Location) <= (MaxRange * MaxRange));
+	const FVector AdjustedEnd = (bUseTraceResult) ? HitResult.Location : ViewEnd;
+	FVector AdjustedAimDir = (AdjustedEnd - TraceStart).GetSafeNormal();
+	if (AdjustedAimDir.IsZero())
+	{
+		AdjustedAimDir = ViewDir;
+	}
+
+	if (!bTraceAffectsAimPitch && bUseTraceResult)
+	{
+		FVector OriginalAimDir = (ViewEnd - TraceStart).GetSafeNormal();
+
+		if (!OriginalAimDir.IsZero())
+		{
+			// Convert to angles and use original pitch
+			const FRotator OriginalAimRot = OriginalAimDir.Rotation();
+
+			FRotator AdjustedAimRot = AdjustedAimDir.Rotation();
+			AdjustedAimRot.Pitch = OriginalAimRot.Pitch;
+
+			AdjustedAimDir = AdjustedAimRot.Vector();
+		}
+	}
+
+	OutTraceEnd = TraceStart + (AdjustedAimDir * MaxRange);
+}
+
+bool ULRScanForInteractables::ClipCameraRayToAbilityRange(FVector CameraLocation, FVector CameraDirection,
+	FVector AbilityCenter, float AbilityRange, FVector& ClippedPosition) const
+{
+	FVector CameraToCenter = AbilityCenter - CameraLocation;
+	float DotToCenter = FVector::DotProduct(CameraToCenter, CameraDirection);
+	if (DotToCenter >= 0)		//If this fails, we're pointed away from the center, but we might be inside the sphere and able to find a good exit point.
+	{
+		float DistanceSquared = CameraToCenter.SizeSquared() - (DotToCenter * DotToCenter);
+		float RadiusSquared = (AbilityRange * AbilityRange);
+		if (DistanceSquared <= RadiusSquared)
+		{
+			float DistanceFromCamera = FMath::Sqrt(RadiusSquared - DistanceSquared);
+			float DistanceAlongRay = DotToCenter + DistanceFromCamera;						//Subtracting instead of adding will get the other intersection point
+			ClippedPosition = CameraLocation + (DistanceAlongRay * CameraDirection);		//Cam aim point clipped to range sphere
+			return true;
+		}
+	}
+	return false;
+}
+
+void ULRScanForInteractables::LineTrace(FHitResult& OutHitResult, const UWorld* World, const FVector& Start,
+	const FVector& End, FName ProfileName, const FCollisionQueryParams Params) const
+{
+	check(World);
+
+	OutHitResult = FHitResult();
+	TArray<FHitResult> HitResults;
+	World->LineTraceMultiByProfile(HitResults, Start, End, ProfileName, Params);
+
+	OutHitResult.TraceStart = Start;
+	OutHitResult.TraceEnd = End;
+
+	if (HitResults.Num() > 0)
+	{
+		OutHitResult = HitResults[0];
 	}
 }

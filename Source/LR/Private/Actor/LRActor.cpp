@@ -52,6 +52,7 @@ ALRInteractableActor::ALRInteractableActor(const FObjectInitializer& ObjectIniti
 void ALRInteractableActor::GatherInteractionOptions(const FLRInteractionQuery& InteractQuery,
 	FLRInteractionOptionBuilder& OptionBuilder)
 {
+	OptionBuilder.AddInteractionOption(InteractionOption);
 }
 
 void ALRInteractableActor::CustomizeInteractionEventData(const FGameplayTag& InteractionEventTag,

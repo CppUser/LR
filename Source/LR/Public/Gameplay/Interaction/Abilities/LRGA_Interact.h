@@ -36,7 +36,6 @@ private:
 	float GetInteractionAngle() const;
 	bool IsActorInInteractionCone(const AActor* Target) const;
 
-	void DrawDebugInfo() const;
 protected:
 	UPROPERTY(BlueprintReadWrite)
 	TArray<FLRInteractionOption> CurrentOptions;
@@ -69,5 +68,5 @@ protected:
 	TSoftClassPtr<UUserWidget> MultiOptionWidgetClass;
 
 	EInteractionMethod CurrentInteractionMethod;
-	FTimerHandle DebugDrawTimerHandle;
+	
 };

@@ -26,7 +26,8 @@ public:
 	         float InScanAngle,
 	         bool bInRequireLineOfSight,
 	         bool bInScanInCone,
-	         EInteractionMethod InMethod
+	         EInteractionMethod InMethod,
+	         bool bShowDebugInfo = false
 	);
 
 	virtual void Activate() override;
@@ -47,6 +48,16 @@ private:
 	void ProcessInteractableTargets(const TArray<TScriptInterface<ILRInteractableTarget>>& Targets);
 	void UpdateCachedOptions(const TArray<FLRInteractionOption>& NewOptions);
 
+	void AimWithPlayerController(const AActor* InSourceActor,
+		                         FCollisionQueryParams Params,
+		                         const FVector& TraceStart,
+		                         float MaxRange,
+		                         FVector& OutTraceEnd,
+		                         bool bIgnorePitch) const;
+	
+	bool ClipCameraRayToAbilityRange(FVector CameraLocation, FVector CameraDirection, FVector AbilityCenter, float AbilityRange, FVector& ClippedPosition) const;
+	void LineTrace(FHitResult& OutHitResult, const UWorld* World, const FVector& Start, const FVector& End, FName ProfileName, const FCollisionQueryParams Params) const;
+
 private:
 	float ScanRange;
 	float ScanRate;
@@ -54,10 +65,14 @@ private:
 	bool bRequireLineOfSight;
 	bool bScanInCone;
 	EInteractionMethod InteractionMethod;
+	bool bShowDebugInfo;
 
 	FTimerHandle ScanTimerHandle;
 	TArray<FLRInteractionOption> CachedOptions;
 	TMap<FObjectKey, FGameplayAbilitySpecHandle> GrantedAbilityCache;
+
+	FCollisionProfileName TraceProfile;
+	bool bTraceAffectsAimPitch = true;
 };
 
 
