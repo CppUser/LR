@@ -36,6 +36,8 @@ private:
 	float GetInteractionAngle() const;
 	bool IsActorInInteractionCone(const AActor* Target) const;
 
+	UFUNCTION()
+	void OnInteractablesUpdated(const TArray<FLRInteractionOption>& NewOptions);
 protected:
 	UPROPERTY(BlueprintReadWrite)
 	TArray<FLRInteractionOption> CurrentOptions;

@@ -32,32 +32,28 @@ public:
 
 	virtual void Activate() override;
 	virtual void OnDestroy(bool AbilityEnded) override;
+	virtual void TickTask(float DeltaTime) override;
 
 	UPROPERTY(BlueprintAssignable)
 	FOnInteractablesFound OnInteractablesFound;
 
 private:
 	void PerformScan();
+	void GatherProximityTargets(TArray<TScriptInterface<ILRInteractableTarget>>& OutTargets);
+	void FilterTargetsByMethod(TArray<TScriptInterface<ILRInteractableTarget>>& Targets);
+	void FilterTargetsByCone(TArray<TScriptInterface<ILRInteractableTarget>>& Targets);
 	void ScanProximity();
 	void ScanLineTrace();
 	void ScanMouseOver();
 
 	bool CheckLineOfSight(const AActor* Target) const;
-	bool IsInScanArea(const AActor* Target) const;
-    
+	bool IsInCone(const AActor* Target) const;
+	bool IsLookingAtTarget(const AActor* Target) const;
+	
 	void ProcessInteractableTargets(const TArray<TScriptInterface<ILRInteractableTarget>>& Targets);
 	void UpdateCachedOptions(const TArray<FLRInteractionOption>& NewOptions);
 
-	void AimWithPlayerController(const AActor* InSourceActor,
-		                         FCollisionQueryParams Params,
-		                         const FVector& TraceStart,
-		                         float MaxRange,
-		                         FVector& OutTraceEnd,
-		                         bool bIgnorePitch) const;
-	
-	bool ClipCameraRayToAbilityRange(FVector CameraLocation, FVector CameraDirection, FVector AbilityCenter, float AbilityRange, FVector& ClippedPosition) const;
-	void LineTrace(FHitResult& OutHitResult, const UWorld* World, const FVector& Start, const FVector& End, FName ProfileName, const FCollisionQueryParams Params) const;
-
+	void DrawDebugVisualization();
 private:
 	float ScanRange;
 	float ScanRate;

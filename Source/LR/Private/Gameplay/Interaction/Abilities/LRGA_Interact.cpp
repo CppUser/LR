@@ -18,6 +18,8 @@ ULRGA_Interact::ULRGA_Interact(const FObjectInitializer& ObjectInitializer) : Su
 	ActivationPolicy = EAbilityActivationPolicy::OnSpawn;
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalOnly;
+
+	bServerRespectsRemoteAbilityCancellation = false;
 }
 
 void ULRGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
@@ -40,8 +42,14 @@ void ULRGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 			true, //TODO: Need to implement
 			true, //TODO Need to implement properly IsActorInInteractionCone checks if actor in cone
 			CurrentInteractionMethod,
-			bShowDebugInfo); 
-		Task->ReadyForActivation();
+			bShowDebugInfo);
+		
+		if (Task)
+		{
+			// Bind to the delegate to receive updates
+			Task->OnInteractablesFound.AddDynamic(this, &ULRGA_Interact::OnInteractablesUpdated);
+			Task->ReadyForActivation();
+		}
 	}
 	
 }
@@ -49,35 +57,77 @@ void ULRGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 void ULRGA_Interact::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
+
+	
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
 void ULRGA_Interact::UpdateInteractionOption(const TArray<FLRInteractionOption>& NewOptions)
 {
+	CurrentOptions = NewOptions;
 }
 
 void ULRGA_Interact::TriggerInteraction(int32 OptionIndex)
 {
 	if (!CurrentOptions.IsValidIndex(OptionIndex))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("TriggerInteraction: Invalid option index %d"), OptionIndex);
 		return;
+	}
 
 	UAbilitySystemComponent* AbilitySystem = GetAbilitySystemComponentFromActorInfo();
 	if (!AbilitySystem)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("TriggerInteraction: No ability system component"));
 		return;
+	}
 
-	const FLRInteractionOption& InteractionOption = CurrentOptions[0];
+	const FLRInteractionOption& InteractionOption = CurrentOptions[OptionIndex];
 	
 	AActor* Instigator = GetAvatarActorFromActorInfo();
 	AActor* InteractableTargetActor = ULRInteractionStatics::GetActorFromInteractableTarget(InteractionOption.InteractableTarget);
+
+	if (!InteractableTargetActor)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("TriggerInteraction: No target actor"));
+		return;
+	}
 
 	FGameplayEventData Payload;
 	Payload.EventTag = TAG_Ability_Interaction_Activate;
 	Payload.Instigator = Instigator;
 	Payload.Target = InteractableTargetActor;
 
+	// Allow the target to customize the event data
 	if (InteractionOption.InteractableTarget)
 	{
 		InteractionOption.InteractableTarget->CustomizeInteractionEventData(TAG_Ability_Interaction_Activate, Payload);
+	}
+
+	bool bInteractionTriggered = false;
+
+	// Try to activate ability on target
+	if (InteractionOption.TargetAbilitySystem && InteractionOption.TargetInteractionAbilityHandle.IsValid())
+	{
+		UE_LOG(LogTemp, Log, TEXT("TriggerInteraction: Triggering ability on target %s"), *GetNameSafe(InteractableTargetActor));
+		
+		// Create actor info for the target
+		FGameplayAbilityActorInfo ActorInfo;
+		ActorInfo.InitFromActor(InteractableTargetActor, InteractableTargetActor, InteractionOption.TargetAbilitySystem);
+		
+		// Try to activate the ability
+		bInteractionTriggered = InteractionOption.TargetAbilitySystem->TriggerAbilityFromGameplayEvent(
+			InteractionOption.TargetInteractionAbilityHandle,
+			&ActorInfo,
+			TAG_Ability_Interaction_Activate,
+			&Payload,
+			*InteractionOption.TargetAbilitySystem
+		);
+		
+		if (!bInteractionTriggered)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("TriggerInteraction: Failed to trigger ability on target"));
+		}
 	}
 
 	if (InteractionOption.TargetAbilitySystem && InteractionOption.TargetInteractionAbilityHandle.IsValid())
@@ -171,6 +221,11 @@ bool ULRGA_Interact::IsActorInInteractionCone(const AActor* Target) const
 
 	float ConeHalfAngle = GetInteractionAngle() * 0.5f;
 	return AngleDegrees <= ConeHalfAngle;
+}
+
+void ULRGA_Interact::OnInteractablesUpdated(const TArray<FLRInteractionOption>& NewOptions)
+{
+	UpdateInteractionOption(NewOptions);
 }
 
 
