@@ -30,6 +30,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LR|Interaction")
 	void TriggerInteraction(int32 OptionIndex = 0);
 
+	int32 GetCurrentOptionIndex() const;
 private:
 	float GetModifiedInteractionRange() const;
 	float GetInteractionScanRate() const;

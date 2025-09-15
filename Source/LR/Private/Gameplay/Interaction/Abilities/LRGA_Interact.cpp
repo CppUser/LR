@@ -156,6 +156,11 @@ void ULRGA_Interact::TriggerInteraction(int32 OptionIndex)
 	}
 }
 
+int32 ULRGA_Interact::GetCurrentOptionIndex() const
+{
+	return 0;
+}
+
 float ULRGA_Interact::GetModifiedInteractionRange() const
 {
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();

@@ -48,7 +48,9 @@ public class LR : ModuleRules
 				"CommonInput",
 				"CommonGame",
 				"EngineSettings",
-				"Json", "AnimGraphRuntime",
+				"Json", 
+				"AnimGraphRuntime",
+				"GameplayStateTreeModule",
 			}
 		);
 	}
