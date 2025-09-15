@@ -7,9 +7,11 @@
 #include "LRInventoryItemInfo.generated.h"
 
 class ULRInventoryItemFragment;
-/**
- * 
- */
+
+
+
+
+
 UCLASS(Blueprintable, Const, Abstract)
 class LR_API ULRInventoryItemInfo : public UObject
 {

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "LRInventoryTypes.h"
 #include "UObject/Object.h"
 #include "LRInventoryItemFragment.generated.h"
 
@@ -27,18 +28,52 @@ class ULRInventoryFragment_EquippableItem : public ULRInventoryItemFragment
 public:
 	UPROPERTY(EditAnywhere, Category=InventoryFragment)
 	TSubclassOf<ULREquipmentInfo> EquipmentDefinition;
+
+	UPROPERTY(EditAnywhere, Category=Equipment)
+	EEquipmentSlot RequiredSlot = EEquipmentSlot::None;
+
+	UPROPERTY(EditAnywhere, Category=Equipment)
+	TArray<EEquipmentSlot> ValidSlots;
+
+	UPROPERTY(EditAnywhere, Category=Equipment)
+	FGameplayTagContainer RequiredTags;
+
+	UPROPERTY(EditAnywhere, Category=Equipment)
+	FItemStats ItemStats;
 };
 
-
 UCLASS()
-class ULRInventoryFragment_PickupIcon : public ULRInventoryItemFragment
+class ULRInventoryFragment_Description : public ULRInventoryItemFragment
 {
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Appearance)
-	TObjectPtr<USkeletalMesh> SkeletalMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Description)
+	FText ItemName;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Appearance)
-	FText DisplayName;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Description)
+	FText Description;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Description)
+	FText FlavorText;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Description)
+	UTexture2D* Icon;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Description)
+	FItemRarity Rarity;
+};
+
+
+UCLASS()
+class ULRInventoryFragment_StackableItem : public ULRInventoryItemFragment
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Stack)
+	int32 MaxStackSize = 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Stack)
+	bool bCanSplit = true;
 };

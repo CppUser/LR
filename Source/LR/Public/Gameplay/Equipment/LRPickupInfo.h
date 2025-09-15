@@ -6,6 +6,7 @@
 #include "Engine/DataAsset.h"
 #include "LRPickupInfo.generated.h"
 
+class ULRInventoryItemInfo;
 class UNiagaraSystem;
 
 

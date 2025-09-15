@@ -43,7 +43,7 @@ public:
 
 	virtual void CustomizeInteractionEventData(const FGameplayTag& InteractionEventTag, 
 		FGameplayEventData& InOutEventData) override;
-private:
+protected:
 	UPROPERTY(EditAnywhere, Category = "Interaction", meta = (AllowPrivateAccess = "true"))
 	FLRInteractionOption InteractionOption;
 	
