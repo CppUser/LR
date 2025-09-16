@@ -48,10 +48,10 @@ public:
 private:
 	void SetItemDef(TSubclassOf<ULRInventoryItemInfo> InDef);
 private:
-	UPROPERTY(Replicated)
+	UPROPERTY()
 	FGameplayTagStackContainer StatTags;
 
-	UPROPERTY(Replicated)
+	UPROPERTY()
 	TSubclassOf<ULRInventoryItemInfo> ItemDef;
 
 	friend struct FInventoryList;

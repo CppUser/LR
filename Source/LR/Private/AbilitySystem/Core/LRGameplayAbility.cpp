@@ -6,6 +6,8 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemLog.h"
 #include "AbilitySystem/Core/LRAbilitySystemComponent.h"
+#include "Character/LRCharacter.h"
+#include "Player/LRPlayerController.h"
 #include "Utils/LRGameplayTags.h"
 
 
@@ -67,6 +69,16 @@ AController* ULRGameplayAbility::GetControllerFromActorInfo() const
 	}
 
 	return nullptr;
+}
+
+ALRPlayerController* ULRGameplayAbility::GetLRPlayerControllerFromActorInfo() const
+{
+	return (CurrentActorInfo ? Cast<ALRPlayerController>(CurrentActorInfo->PlayerController.Get()) : nullptr);
+}
+
+ALRCharacter* ULRGameplayAbility::GetLRCharacterFromActorInfo() const
+{
+	return (CurrentActorInfo ? Cast<ALRCharacter>(CurrentActorInfo->AvatarActor.Get()) : nullptr);
 }
 
 void ULRGameplayAbility::TryActivateAbilityOnSpawn(const FGameplayAbilityActorInfo* ActorInfo,

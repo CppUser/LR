@@ -5,6 +5,8 @@
 #include "Abilities/GameplayAbility.h"
 #include "LRGameplayAbility.generated.h"
 
+class ALRCharacter;
+class ALRPlayerController;
 class ULRAbilitySystemComponent;
 
 UENUM(BlueprintType)
@@ -55,7 +57,13 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "LR|Ability")
 	AController* GetControllerFromActorInfo() const;
-	
+
+	UFUNCTION(BlueprintCallable, Category = "LR|Ability")
+	ALRPlayerController* GetLRPlayerControllerFromActorInfo() const;
+
+	UFUNCTION(BlueprintCallable, Category = "LR|Ability")
+	ALRCharacter* GetLRCharacterFromActorInfo() const;
+
 	void TryActivateAbilityOnSpawn(const FGameplayAbilityActorInfo* ActorInfo,const FGameplayAbilitySpec& Spec) const;
 	
 	EAbilityActivationPolicy GetActivationPolicy() const { return ActivationPolicy; }

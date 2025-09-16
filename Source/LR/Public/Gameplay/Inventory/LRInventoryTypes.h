@@ -6,10 +6,6 @@
 #include "LRInventoryTypes.generated.h"
 
 class ULRInventoryItemInstance;
-enum class EEquipmentSlot;
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInventoryItemChanged, ULRInventoryItemInstance*, Item, int32, NewCount);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnEquipmentChanged, EEquipmentSlot, Slot, ULRInventoryItemInstance*, Item);
 
 UENUM(BlueprintType)
 enum class EEquipmentSlot : uint8
@@ -57,3 +53,6 @@ struct FItemStats
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TMap<FGameplayTag, float> BonusStats;
 };
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInventoryItemChanged, ULRInventoryItemInstance*, Item, int32, NewCount);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnEquipmentChanged, EEquipmentSlot, Slot, ULRInventoryItemInstance*, Item);

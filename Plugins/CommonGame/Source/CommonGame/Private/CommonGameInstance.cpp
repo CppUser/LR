@@ -4,6 +4,7 @@
 #include "CommonGameInstance.h"
 
 #include "CommonLocalPlayer.h"
+#include "GameUIManagerSubsystem.h"
 
 UCommonGameInstance::UCommonGameInstance(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
@@ -21,7 +22,7 @@ int32 UCommonGameInstance::AddLocalPlayer(ULocalPlayer* NewPlayer, FPlatformUser
 			PrimaryPlayer = NewPlayer;
 		}
 		
-		//TODO: GetSubsystem<UGameUIManagerSubsystem>()->NotifyPlayerAdded(Cast<UCommonLocalPlayer>(NewPlayer));
+		GetSubsystem<UGameUIManagerSubsystem>()->NotifyPlayerAdded(Cast<UCommonLocalPlayer>(NewPlayer));
 	}
 	
 	return ReturnVal;
@@ -35,7 +36,7 @@ bool UCommonGameInstance::RemoveLocalPlayer(ULocalPlayer* ExistingPlayer)
 		PrimaryPlayer.Reset();
 		UE_LOG(LogTemp, Log, TEXT("RemoveLocalPlayer: Unsetting Primary Player from %s"), *ExistingPlayer->GetName());
 	}
-	//TODO: GetSubsystem<UGameUIManagerSubsystem>()->NotifyPlayerDestroyed(Cast<UCommonLocalPlayer>(ExistingPlayer));
+	GetSubsystem<UGameUIManagerSubsystem>()->NotifyPlayerDestroyed(Cast<UCommonLocalPlayer>(ExistingPlayer));
 
 	return Super::RemoveLocalPlayer(ExistingPlayer);
 }

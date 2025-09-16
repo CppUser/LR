@@ -211,11 +211,7 @@
 		{
 			"Name": "HTN",
 			"Enabled": true
-		},
-        {
-            "Name": "Niagara",
-            "Enabled": true
-        }
+		}
       
 	]
 }

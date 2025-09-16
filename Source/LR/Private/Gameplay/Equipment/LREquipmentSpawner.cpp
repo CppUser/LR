@@ -40,6 +40,11 @@ void ALREquipmentSpawner::OnOverlapBegin(UPrimitiveComponent* OverlappedComponen
 {
 }
 
+FInventoryPickup ALREquipmentSpawner::GetPickupInventory() const
+{
+	return FInventoryPickup{};
+}
+
 void ALREquipmentSpawner::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);

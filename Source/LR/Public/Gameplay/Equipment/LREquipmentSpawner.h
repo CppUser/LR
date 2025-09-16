@@ -25,7 +25,8 @@ public:
 
 	// UFUNCTION(BlueprintImplementableEvent, Category = "LR|Pickup")
 	//TODO: bool GiveWeapon(TSubclassOf<ULRInventoryItemDefinition> WeaponItemClass, APawn* ReceivingPawn);
-	
+
+	virtual FInventoryPickup GetPickupInventory() const;
 protected:
 	void OnConstruction(const FTransform& Transform) override;
 	virtual void BeginPlay() override;

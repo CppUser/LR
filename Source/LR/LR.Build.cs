@@ -30,7 +30,7 @@ public class LR : ModuleRules
 				"DataRegistry",
 				"Niagara",
 				"ControlFlows",
-				"PropertyPath", 
+				"PropertyPath",
 			}
 		);
 		PrivateDependencyModuleNames.AddRange(
@@ -51,6 +51,7 @@ public class LR : ModuleRules
 				"Json", 
 				"AnimGraphRuntime",
 				"GameplayStateTreeModule",
+				"UIExtension",
 			}
 		);
 	}
