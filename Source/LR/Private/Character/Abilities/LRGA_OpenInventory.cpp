@@ -3,8 +3,14 @@
 
 #include "Character/Abilities/LRGA_OpenInventory.h"
 
+#include "CommonActivatableWidget.h"
+#include "CommonUIExtensions.h"
 #include "Blueprint/UserWidget.h"
+#include "Character/LRCharacter.h"
+#include "Gameplay/Inventory/LRInventoryManagerComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Player/LRPlayerController.h"
+#include "UI/Widgets/Inventory/LRInventoryWidget.h"
 
 ULRGA_OpenInventory::ULRGA_OpenInventory(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
@@ -21,7 +27,21 @@ void ULRGA_OpenInventory::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-	ToggleInventory();
+
+	if (bIsInventoryOpen && bCloseOnInputAgain)
+	{
+		// Inventory is already open, close it
+		CloseInventory();
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+	}
+	else
+	{
+		// Open the inventory
+		OpenInventory();
+        
+		// Keep the ability active while inventory is open
+		// It will end when the inventory is closed
+	}
 }
 
 void ULRGA_OpenInventory::EndAbility(const FGameplayAbilitySpecHandle Handle,
@@ -36,24 +56,88 @@ void ULRGA_OpenInventory::EndAbility(const FGameplayAbilitySpecHandle Handle,
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
-void ULRGA_OpenInventory::ToggleInventory()
+void ULRGA_OpenInventory::OpenInventory()
 {
 	if (bIsInventoryOpen)
 	{
-		CloseInventory();
+		return;
+	}
+
+	AActor* AvatarActor = GetAvatarActorFromActorInfo();
+	if (!AvatarActor)
+	{
+		return;
+	}
+
+	ALRPlayerController* PC = GetLRPlayerControllerFromActorInfo();
+	if (!PC)
+	{
+		return;
+	}
+
+	ULocalPlayer* LocalPlayer = PC->GetLocalPlayer();
+	if (!LocalPlayer || !InventoryWidgetClass)
+	{
+		return;
+	}
+
+	UCommonActivatableWidget* NewWidget = UCommonUIExtensions::PushContentToLayer_ForPlayer(
+		LocalPlayer,
+		InventoryLayer,
+		InventoryWidgetClass
+	);
+
+	if (ULRInventoryWidget* InventoryWidget = Cast<ULRInventoryWidget>(NewWidget))
+	{
+		CurrentInventoryWidget = InventoryWidget;
+        
+		if (ALRCharacter* LRCharacter = Cast<ALRCharacter>(AvatarActor))
+		{
+			if (ULRInventoryManagerComponent* InvComp = LRCharacter->FindComponentByClass<ULRInventoryManagerComponent>())
+			{
+				InventoryWidget->SetInventoryComponent(InvComp);
+			}
+		}
+
+		InventoryWidget->OnDeactivated().AddUObject(this, &ThisClass::OnInventoryWidgetDeactivated);
+        
+		bIsInventoryOpen = true;
 	}
 	else
 	{
-		OpenInventory();
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 	}
-}
-
-void ULRGA_OpenInventory::OpenInventory()
-{
-	
 }
 
 void ULRGA_OpenInventory::CloseInventory()
 {
-	
+	if (!bIsInventoryOpen)
+	{
+		return;
+	}
+
+	if (CurrentInventoryWidget.IsValid())
+	{
+		CurrentInventoryWidget->DeactivateWidget();
+	}
+	else
+	{
+		bIsInventoryOpen = false;
+	}
+}
+
+void ULRGA_OpenInventory::OnInventoryWidgetDeactivated()
+{
+	if (CurrentInventoryWidget.IsValid())
+	{
+		CurrentInventoryWidget->OnDeactivated().RemoveAll(this);
+	}
+    
+	CurrentInventoryWidget.Reset();
+	bIsInventoryOpen = false;
+    
+	if (IsActive())
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+	}
 }

@@ -6,6 +6,7 @@
 #include "AbilitySystem/Core/LRGameplayAbility.h"
 #include "LRGA_OpenInventory.generated.h"
 
+class ULRInventoryWidget;
 /**
  * 
  */
@@ -16,42 +17,38 @@ class LR_API ULRGA_OpenInventory : public ULRGameplayAbility
 public:
 	ULRGA_OpenInventory(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
-	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
-	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
+	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
+		const FGameplayAbilityActorInfo* ActorInfo, 
+		const FGameplayAbilityActivationInfo ActivationInfo, 
+		const FGameplayEventData* TriggerEventData) override;
+        
+	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, 
+		const FGameplayAbilityActorInfo* ActorInfo, 
+		const FGameplayAbilityActivationInfo ActivationInfo, 
+		bool bReplicateEndAbility, bool bWasCancelled) override;
 
-	UFUNCTION(BlueprintCallable, Category = "LR|Inventory")
-	void ToggleInventory();
+protected:
 	UFUNCTION(BlueprintCallable, Category = "LR|Inventory")
 	void OpenInventory();
+    
 	UFUNCTION(BlueprintCallable, Category = "LR|Inventory")
 	void CloseInventory();
 
-	UFUNCTION(BlueprintPure, Category = "LR|Inventory")
-	bool IsInventoryOpen() const {return bIsInventoryOpen;}
-protected:
-	UFUNCTION(BlueprintImplementableEvent, Category = "LR|Inventory")
-	void OnInventoryOpened();
-
-	UFUNCTION(BlueprintImplementableEvent, Category = "LR|Inventory")
-	void OnInventoryClosed();
+	UFUNCTION()
+	void OnInventoryWidgetDeactivated();
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
-	TSoftClassPtr<UUserWidget> InventoryWidgetClass;
+	TSubclassOf<ULRInventoryWidget> InventoryWidgetClass;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI", meta = (Categories = "UI.Layer"))
+	FGameplayTag InventoryLayer = FGameplayTag::RequestGameplayTag("UI.Layer.Menu");
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Settings")
 	bool bCloseOnInputAgain = true;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
-	bool bPauseGameWhenOpen = false;
 private:
-	bool bIsInventoryOpen = false;
-
 	UPROPERTY()
-	TObjectPtr<UUserWidget> CurrentInventoryWidget;
-	
-#pragma region TEMP Inventory Widget
-	void CreateInventoryWidget();
-	void RemoveInventoryWidget();
-#pragma endregion
+	TWeakObjectPtr<ULRInventoryWidget> CurrentInventoryWidget;
+
+	bool bIsInventoryOpen = false;
 };
