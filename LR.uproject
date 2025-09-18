@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "{55C6AA0D-4065-DB4A-DB1D-32A2AAD70C20}",
+	"EngineAssociation": "{7082702B-47CA-388B-560E-E6872A64A45D}",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -207,11 +207,6 @@
 		{
 			"Name": "RigLogic",
 			"Enabled": true
-		},
-		{
-			"Name": "HTN",
-			"Enabled": true
 		}
-      
 	]
 }
