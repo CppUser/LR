@@ -35,7 +35,7 @@ void ULRGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	if (AbilitySystem)
 	{
 		//TODO: Should i handle this task simply for proximity and grant required ability ?
-		ULRScanForInteractables* Task = ULRScanForInteractables::ScanForInteractables(this,
+		ScanTask = ULRScanForInteractables::ScanForInteractables(this,
 			GetModifiedInteractionRange(),
 			GetInteractionScanRate(),
 			GetInteractionAngle(),
@@ -44,11 +44,10 @@ void ULRGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 			CurrentInteractionMethod,
 			bShowDebugInfo);
 		
-		if (Task)
+		if (ScanTask)
 		{
-			// Bind to the delegate to receive updates
-			Task->OnInteractablesFound.AddDynamic(this, &ULRGA_Interact::OnInteractablesUpdated);
-			Task->ReadyForActivation();
+			ScanTask->OnInteractablesFound.AddDynamic(this, &ULRGA_Interact::OnInteractablesUpdated);
+			ScanTask->ReadyForActivation();
 		}
 	}
 	
@@ -57,14 +56,72 @@ void ULRGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 void ULRGA_Interact::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
+	if (ActiveInteraction.bIsHolding)
+	{
+		CancelHoldInteraction();
+	}
 
+	if (GetWorld())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(HoldTimerHandle);
+	}
+
+	if (ScanTask)
+	{
+		ScanTask->EndTask();
+		ScanTask = nullptr;
+	}
 	
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
+void ULRGA_Interact::InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo)
+{
+	bIsInputPressed = true;
+    
+	if (CurrentOptions.Num() > 0)
+	{
+		StartHoldInteraction(0);
+	}
+}
+
+void ULRGA_Interact::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo)
+{
+	bIsInputPressed = false;
+    
+	if (ActiveInteraction.bIsHolding)
+	{
+		const FLRInteractionOption& Option = ActiveInteraction.Option;
+        
+		if (Option.InteractionDuration > 0.0f)
+		{
+			if (ActiveInteraction.bCompleted)
+			{
+				CompleteHoldInteraction();
+			}
+			else
+			{
+				CancelHoldInteraction();
+			}
+		}
+		else
+		{
+			CompleteHoldInteraction();
+		}
+	}
 }
 
 void ULRGA_Interact::UpdateInteractionOption(const TArray<FLRInteractionOption>& NewOptions)
 {
 	CurrentOptions = NewOptions;
+	OnInteractionOptionsUpdated(NewOptions);
+    
+	if (!ActiveInteraction.bIsHolding && bIsInputPressed && CurrentOptions.Num() > 0)
+	{
+		StartHoldInteraction(0);
+	}
 }
 
 void ULRGA_Interact::TriggerInteraction(int32 OptionIndex)
@@ -97,8 +154,8 @@ void ULRGA_Interact::TriggerInteraction(int32 OptionIndex)
 	Payload.EventTag = TAG_Ability_Interaction_Activate;
 	Payload.Instigator = Instigator;
 	Payload.Target = InteractableTargetActor;
+	Payload.EventMagnitude = InteractionOption.InteractionDuration;
 
-	// Allow the target to customize the event data
 	if (InteractionOption.InteractableTarget)
 	{
 		InteractionOption.InteractableTarget->CustomizeInteractionEventData(TAG_Ability_Interaction_Activate, Payload);
@@ -106,16 +163,13 @@ void ULRGA_Interact::TriggerInteraction(int32 OptionIndex)
 
 	bool bInteractionTriggered = false;
 
-	// Try to activate ability on target
 	if (InteractionOption.TargetAbilitySystem && InteractionOption.TargetInteractionAbilityHandle.IsValid())
 	{
 		UE_LOG(LogTemp, Log, TEXT("TriggerInteraction: Triggering ability on target %s"), *GetNameSafe(InteractableTargetActor));
-		
-		// Create actor info for the target
+        
 		FGameplayAbilityActorInfo ActorInfo;
 		ActorInfo.InitFromActor(InteractableTargetActor, InteractableTargetActor, InteractionOption.TargetAbilitySystem);
-		
-		// Try to activate the ability
+        
 		bInteractionTriggered = InteractionOption.TargetAbilitySystem->TriggerAbilityFromGameplayEvent(
 			InteractionOption.TargetInteractionAbilityHandle,
 			&ActorInfo,
@@ -123,37 +177,67 @@ void ULRGA_Interact::TriggerInteraction(int32 OptionIndex)
 			&Payload,
 			*InteractionOption.TargetAbilitySystem
 		);
-		
-		if (!bInteractionTriggered)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("TriggerInteraction: Failed to trigger ability on target"));
-		}
 	}
-
-	if (InteractionOption.TargetAbilitySystem && InteractionOption.TargetInteractionAbilityHandle.IsValid())
-	{
-		AActor* TargetActor = const_cast<AActor*>(ToRawPtr(Payload.Target));
-        
-		FGameplayAbilityActorInfo ActorInfo;
-		ActorInfo.InitFromActor(InteractableTargetActor, TargetActor, InteractionOption.TargetAbilitySystem);
-
-		InteractionOption.TargetAbilitySystem->TriggerAbilityFromGameplayEvent(
-			InteractionOption.TargetInteractionAbilityHandle,
-			&ActorInfo,
-			TAG_Ability_Interaction_Activate,
-			&Payload,
-			*InteractionOption.TargetAbilitySystem
-		);
-	}
-	// Otherwise, if there's an ability to grant, try to activate it
 	else if (InteractionOption.InteractionAbilityToGrant)
 	{
+		UE_LOG(LogTemp, Log, TEXT("TriggerInteraction: Triggering ability on avatar with event data"));
+        
 		FGameplayAbilitySpec* Spec = AbilitySystem->FindAbilitySpecFromClass(InteractionOption.InteractionAbilityToGrant);
 		if (Spec)
 		{
-			AbilitySystem->TryActivateAbility(Spec->Handle);
+			bInteractionTriggered = AbilitySystem->TriggerAbilityFromGameplayEvent(
+				Spec->Handle,
+				AbilitySystem->AbilityActorInfo.Get(),
+				TAG_Ability_Interaction_Activate,
+				&Payload,
+				*AbilitySystem
+			);
+            
+			if (!bInteractionTriggered)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("TriggerInteraction: Fallback to regular activation"));
+				bInteractionTriggered = AbilitySystem->TryActivateAbility(Spec->Handle);
+			}
 		}
 	}
+    
+	if (bInteractionTriggered)
+	{
+		UE_LOG(LogTemp, Log, TEXT("TriggerInteraction: Successfully triggered interaction"));
+	}
+	
+}
+
+void ULRGA_Interact::OnTimedInteractionComplete(int32 OptionIndex)
+{
+	CompleteHoldInteraction();
+}
+
+float ULRGA_Interact::GetInteractionProgress() const
+{
+	if (!ActiveInteraction.bIsHolding || ActiveInteraction.Option.InteractionDuration <= 0.0f)
+	{
+		return 0.0f;
+	}
+
+	const float CurrentTime = GetWorld()->GetTimeSeconds();
+	const float HoldTime = CurrentTime - ActiveInteraction.HoldStartTime;
+	return FMath::Clamp(HoldTime / ActiveInteraction.Option.InteractionDuration, 0.0f, 1.0f);
+}
+
+FLRInteractionOption ULRGA_Interact::GetCurrentInteractionOption() const
+{
+	if (ActiveInteraction.bIsHolding)
+	{
+		return ActiveInteraction.Option;
+	}
+    
+	if (CurrentOptions.Num() > 0)
+	{
+		return CurrentOptions[0];
+	}
+    
+	return FLRInteractionOption();
 }
 
 int32 ULRGA_Interact::GetCurrentOptionIndex() const
@@ -226,6 +310,107 @@ bool ULRGA_Interact::IsActorInInteractionCone(const AActor* Target) const
 
 	float ConeHalfAngle = GetInteractionAngle() * 0.5f;
 	return AngleDegrees <= ConeHalfAngle;
+}
+
+void ULRGA_Interact::StartHoldInteraction(int32 OptionIndex)
+{
+	if (!CurrentOptions.IsValidIndex(OptionIndex))
+	{
+		return;
+	}
+
+	ActiveInteraction.Option = CurrentOptions[OptionIndex];
+	ActiveInteraction.HoldStartTime = GetWorld()->GetTimeSeconds();
+	ActiveInteraction.bIsHolding = true;
+	ActiveInteraction.bCompleted = false;
+
+	OnInteractionStarted(ActiveInteraction.Option);
+
+	if (ActiveInteraction.Option.InteractionDuration > 0.0f)
+	{
+		GetWorld()->GetTimerManager().SetTimer(
+			HoldTimerHandle,
+			this,
+			&ULRGA_Interact::HoldInteractionTick,
+			HoldTickRate,
+			true
+		);
+	}
+}
+
+void ULRGA_Interact::UpdateHoldInteraction()
+{
+	if (!ActiveInteraction.bIsHolding)
+	{
+		return;
+	}
+
+	const float CurrentTime = GetWorld()->GetTimeSeconds();
+	const float HoldTime = CurrentTime - ActiveInteraction.HoldStartTime;
+	const float Duration = ActiveInteraction.Option.InteractionDuration;
+
+	if (Duration > 0.0f)
+	{
+		const float Progress = FMath::Clamp(HoldTime / Duration, 0.0f, 1.0f);
+        
+		OnInteractionProgress(Progress, ActiveInteraction.Option);
+
+		if (Progress >= 1.0f && !ActiveInteraction.bCompleted)
+		{
+			ActiveInteraction.bCompleted = true;
+            
+			if (!ActiveInteraction.Option.bCanBeInterrupted)
+			{
+				CompleteHoldInteraction();
+			}
+		}
+	}
+}
+
+void ULRGA_Interact::CancelHoldInteraction()
+{
+	if (!ActiveInteraction.bIsHolding)
+	{
+		return;
+	}
+
+	OnInteractionCancelled(ActiveInteraction.Option);
+    
+	GetWorld()->GetTimerManager().ClearTimer(HoldTimerHandle);
+	ActiveInteraction.Reset();
+}
+
+void ULRGA_Interact::CompleteHoldInteraction()
+{
+	if (!ActiveInteraction.bIsHolding)
+	{
+		return;
+	}
+
+	int32 OptionIndex = CurrentOptions.IndexOfByPredicate([this](const FLRInteractionOption& Option)
+	{
+		return Option == ActiveInteraction.Option;
+	});
+
+	if (OptionIndex != INDEX_NONE)
+	{
+		TriggerInteraction(OptionIndex);
+		OnInteractionCompleted(ActiveInteraction.Option);
+	}
+
+	GetWorld()->GetTimerManager().ClearTimer(HoldTimerHandle);
+	ActiveInteraction.Reset();
+}
+
+void ULRGA_Interact::HoldInteractionTick()
+{
+	if (!ActiveInteraction.bIsHolding)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(HoldTimerHandle);
+		return;
+	}
+
+	UpdateHoldInteraction();
 }
 
 void ULRGA_Interact::OnInteractablesUpdated(const TArray<FLRInteractionOption>& NewOptions)
