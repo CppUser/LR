@@ -6,6 +6,8 @@
 #include "ModularCharacter.h"
 #include "LRCharacter.generated.h"
 
+class ULRInventoryManagerComponent;
+class ULREquipmentManagerComponent;
 class ULRAbilitySystemComponent;
 class ALRPlayerState;
 class ALRPlayerController;
@@ -46,5 +48,10 @@ protected:
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LR|Character", Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<ULRPawnExtComponent> PawnExtComponent;
-	
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LR|Character", Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<ULREquipmentManagerComponent> EquipmentManagerComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LR|Character", Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<ULRInventoryManagerComponent> InventoryManagerComponent; //TODO: Place in controller ?
 };

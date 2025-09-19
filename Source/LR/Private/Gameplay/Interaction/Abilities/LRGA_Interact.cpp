@@ -12,6 +12,7 @@
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_Ability_Interaction_Activate, "Ability.Interaction.Activate");
 UE_DEFINE_GAMEPLAY_TAG(TAG_INTERACTION_DURATION_MESSAGE, "Ability.Interaction.Duration.Message");
 
+//TODO: Hold Interaction not working
 
 ULRGA_Interact::ULRGA_Interact(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {

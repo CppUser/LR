@@ -76,8 +76,8 @@ DerivedDataCache/*
 .idea/
 Plugins/Developer/RiderLink/
 Recordings/
-Content/
 Content/Art
+Content/InventorySystemPro
 Content/__ExternalActors__
 Content/__ExternalObjects__
 Content/Maps/LevelPrototyping
@@ -85,3 +85,6 @@ DefaultEditorPerProjectUserSettings.ini
 LR.sln.DotSettings.user
 
 Plugins/HTN
+
+/Engine/
+/Engine/*

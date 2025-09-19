@@ -6,6 +6,8 @@
 #include "AbilitySystem/Core/LRAbilitySystemComponent.h"
 #include "Character/Components/LRPawnExtComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Gameplay/Equipment/LREquipmentManagerComponent.h"
+#include "Gameplay/Inventory/LRInventoryManagerComponent.h"
 #include "Player/LRPlayerController.h"
 #include "Player/LRPlayerState.h"
 
@@ -31,6 +33,9 @@ ALRCharacter::ALRCharacter(const FObjectInitializer& ObjectInitializer)
 	PawnExtComponent->OnAbilitySystemInitialized_RegisterAndCall(FSimpleMulticastDelegate::FDelegate::CreateUObject(this, &ThisClass::OnAbilitySystemInitialized));
 	PawnExtComponent->OnAbilitySystemUninitialized_Register(FSimpleMulticastDelegate::FDelegate::CreateUObject(this, &ThisClass::OnAbilitySystemUninitialized));
 
+	EquipmentManagerComponent = CreateDefaultSubobject<ULREquipmentManagerComponent>("EquipmentManagerComponent");
+	InventoryManagerComponent = CreateDefaultSubobject<ULRInventoryManagerComponent>("InventoryManagerComponent");
+	
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = true;
 	bUseControllerRotationRoll = false;
