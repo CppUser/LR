@@ -5,7 +5,7 @@
 #include "GameFramework/Actor.h"
 #include "GameplayTagAssetInterface.h"
 #include "GameplayTagContainer.h"
-#include "Gameplay/Interaction/LRInteractableTarget.h"
+#include "Gameplay/Systems/Interaction/LRInteractableTarget.h"
 
 #include "LRActor.generated.h"
 

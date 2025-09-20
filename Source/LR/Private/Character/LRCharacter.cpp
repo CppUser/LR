@@ -6,8 +6,8 @@
 #include "AbilitySystem/Core/LRAbilitySystemComponent.h"
 #include "Character/Components/LRPawnExtComponent.h"
 #include "Components/CapsuleComponent.h"
-#include "Gameplay/Equipment/LREquipmentManagerComponent.h"
-#include "Gameplay/Inventory/LRInventoryManagerComponent.h"
+#include "Gameplay/Systems/Equipment/LREquipmentManagerComponent.h"
+#include "Gameplay/Systems/Inventory/LRInventoryManagerComponent.h"
 #include "Player/LRPlayerController.h"
 #include "Player/LRPlayerState.h"
 

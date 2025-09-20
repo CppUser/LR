@@ -4,7 +4,7 @@
 #include "UI/Widgets/Inventory/LRInventoryWidget.h"
 
 #include "CommonUIExtensions.h"
-#include "Gameplay/Inventory/LRInventoryManagerComponent.h"
+#include "Gameplay/Systems/Inventory/LRInventoryManagerComponent.h"
 #include "Widgets/UIExtensionPointWidget.h"
 
 ULRInventoryWidget::ULRInventoryWidget(const FObjectInitializer& ObjectInitializer)

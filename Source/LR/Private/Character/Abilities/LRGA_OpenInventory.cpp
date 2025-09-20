@@ -7,7 +7,7 @@
 #include "CommonUIExtensions.h"
 #include "Blueprint/UserWidget.h"
 #include "Character/LRCharacter.h"
-#include "Gameplay/Inventory/LRInventoryManagerComponent.h"
+#include "Gameplay/Systems/Inventory/LRInventoryManagerComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Player/LRPlayerController.h"
 #include "UI/Widgets/Inventory/LRInventoryWidget.h"

@@ -4,7 +4,7 @@
 #include "Actor/LRActor.h"
 
 #include "AbilitySystemGlobals.h"
-#include "Gameplay/Interaction/LRInteractionQuery.h"
+#include "Gameplay/Systems/Interaction/LRInteractionQuery.h"
 #include "UObject/FastReferenceCollector.h"
 
 //////////////////////////////////////////////////////////
