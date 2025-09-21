@@ -8,6 +8,7 @@
 #include "LRGA_MeleeWeapon.generated.h"
 
 
+class UAbilityTask_PlayMontageAndWait;
 class ULRWeaponInstance;
 class ULRMeleeWeaponInstance;
 
@@ -33,6 +34,12 @@ public:
 		const FGameplayAbilityActorInfo* ActorInfo,
 		const FGameplayAbilityActivationInfo ActivationInfo,
 		bool bReplicateEndAbility, bool bWasCancelled) override;
+
+	virtual void InputPressed(const FGameplayAbilitySpecHandle Handle, 
+		const FGameplayAbilityActorInfo* ActorInfo, 
+		const FGameplayAbilityActivationInfo ActivationInfo) override;
+
+	virtual bool ShouldAbilityRespondToEvent(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayEventData* Payload) const override;
 protected:
 	UFUNCTION(BlueprintCallable, Category = "Combo")
 	void PerformAttack();
@@ -80,6 +87,8 @@ private:
 	void PlayAttackMontage(const FComboAttack& Attack);
 
 	ULRWeaponInstance* GetWeaponInstance() const;
+
+	void ProcessBufferedInput();
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combo")
 	EComboInputType InputType = EComboInputType::LightAttack;
@@ -90,4 +99,9 @@ private:
 	bool bComboWindowOpen;
 	bool bInputBuffered;
 	FTimerHandle ComboTimeoutHandle;
+	
+	UPROPERTY()
+	UAbilityTask_PlayMontageAndWait* CurrentMontageTask;
+	UPROPERTY()
+	class ULR_WaitComboWindow* ComboWindowTask = nullptr;
 };

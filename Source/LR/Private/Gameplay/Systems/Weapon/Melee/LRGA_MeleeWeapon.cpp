@@ -10,6 +10,7 @@
 
 ULRGA_MeleeWeapon::ULRGA_MeleeWeapon(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
+	,CurrentMontageTask(nullptr)
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalOnly;
@@ -27,11 +28,30 @@ void ULRGA_MeleeWeapon::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-
-	if (!GetWeaponInstance() || !GetWeaponInstance()->GetComboData())
+	UE_LOG(LogTemp, Warning, TEXT("COMBO: MeleeWeapon ability activated"));
+	
+	if (!GetWeaponInstance())
 	{
+		UE_LOG(LogTemp, Error, TEXT("COMBO: No weapon instance found!"));
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 		return;
+	}
+
+	if (!GetWeaponInstance()->GetComboData())
+	{
+		UE_LOG(LogTemp, Error, TEXT("COMBO: No combo data found!"));
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+		return;
+	}
+
+	const FWeaponComboState& CurrentState = GetWeaponInstance()->GetComboState();
+    
+	if (IsActive() && CurrentState.bComboWindowOpen && !CurrentState.ActiveComboID.IsEmpty())
+	{
+		// We're in a combo window, buffer the input
+		UE_LOG(LogTemp, Warning, TEXT("COMBO: Input during active combo window"));
+		bInputBuffered = true;
+		return; // Don't process yet, wait for montage to complete
 	}
 
 	ProcessComboLogic();
@@ -71,6 +91,27 @@ void ULRGA_MeleeWeapon::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 	}
 	
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
+void ULRGA_MeleeWeapon::InputPressed(const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
+{
+	Super::InputPressed(Handle, ActorInfo, ActivationInfo);
+
+	UE_LOG(LogTemp, Warning, TEXT("COMBO: InputPressed called, bComboWindowOpen=%s"), 
+		bComboWindowOpen ? TEXT("true") : TEXT("false"));
+    
+	if (bComboWindowOpen)
+	{
+		bInputBuffered = true;
+		UE_LOG(LogTemp, Warning, TEXT("COMBO: Input buffered during window"));
+	}
+}
+
+bool ULRGA_MeleeWeapon::ShouldAbilityRespondToEvent(const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayEventData* Payload) const
+{
+	return true;
 }
 
 void ULRGA_MeleeWeapon::PerformAttack()
@@ -151,23 +192,50 @@ void ULRGA_MeleeWeapon::OnNotifyComboWindowOpen()
 		State.bComboWindowOpen = true;
 		// Note: This would need a non-const setter or friend access
 	}
+
+	UE_LOG(LogTemp, Warning, TEXT("COMBO: Window opened for next input"));
 }
 
 void ULRGA_MeleeWeapon::OnNotifyComboWindowClose()
 {
 	bComboWindowOpen = false;
+    
 	if (GetWeaponInstance())
 	{
-		FWeaponComboState State = GetWeaponInstance()->GetComboState();
+		FWeaponComboState& State = const_cast<FWeaponComboState&>(GetWeaponInstance()->GetComboState());
 		State.bComboWindowOpen = false;
+	}
+    
+	UE_LOG(LogTemp, Warning, TEXT("COMBO: Window closed"));
+    
+	// Check if we should continue combo
+	if (bInputBuffered)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("COMBO: Processing buffered input"));
+		ProcessBufferedInput();
 	}
 }
 
 void ULRGA_MeleeWeapon::OnMontageCompleted()
 {
-	if (!bComboWindowOpen || !bInputBuffered)
+	UE_LOG(LogTemp, Warning, TEXT("COMBO: Montage completed, bInputBuffered=%s, CurrentAttackIndex=%d"), 
+		bInputBuffered ? TEXT("true") : TEXT("false"), CurrentAttackIndex);
+    
+	if (bInputBuffered && CurrentAttackIndex < CurrentCombo->AttackSequence.Num() - 1)
 	{
-		// No input during window, combo ends
+		// Continue combo
+		CurrentAttackIndex++;
+		bInputBuffered = false;
+		bComboWindowOpen = false;
+        
+		GetWeaponInstance()->SetComboState(CurrentCombo->ComboID, CurrentAttackIndex);
+        
+		UE_LOG(LogTemp, Warning, TEXT("COMBO: Continuing to attack %d"), CurrentAttackIndex);
+		PerformAttack();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("COMBO: Ending combo"));
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 	}
 }
@@ -321,41 +389,59 @@ void ULRGA_MeleeWeapon::PlayAttackMontage(const FComboAttack& Attack)
 {
 	if (!Attack.AttackMontage)
 	{
+		UE_LOG(LogTemp, Error, TEXT("COMBO: No montage for attack index %d"), CurrentAttackIndex);
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 		return;
 	}
-    
+	
+	UE_LOG(LogTemp, Warning, TEXT("COMBO: Playing montage %s for attack %d"), 
+		*Attack.AttackMontage->GetName(), CurrentAttackIndex);
+
+
+	if (CurrentMontageTask)
+	{
+		CurrentMontageTask->EndTask();
+		CurrentMontageTask = nullptr;
+	}
+
+	
 	// Play montage and wait
-	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
+	CurrentMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 		this,
 		NAME_None,
 		Attack.AttackMontage,
 		1.0f
 	);
     
-	if (MontageTask)
+	if (CurrentMontageTask)
 	{
-		MontageTask->OnCompleted.AddDynamic(this, &ULRGA_MeleeWeapon::OnMontageCompleted);
-		MontageTask->OnBlendOut.AddDynamic(this, &ULRGA_MeleeWeapon::OnMontageBlendOut);
-		MontageTask->OnCancelled.AddDynamic(this, &ULRGA_MeleeWeapon::OnMontageCancelled);
-		MontageTask->ReadyForActivation();
+		CurrentMontageTask->OnCompleted.AddDynamic(this, &ULRGA_MeleeWeapon::OnMontageCompleted);
+		CurrentMontageTask->OnBlendOut.AddDynamic(this, &ULRGA_MeleeWeapon::OnMontageBlendOut);
+		CurrentMontageTask->OnCancelled.AddDynamic(this, &ULRGA_MeleeWeapon::OnMontageCancelled);
+		CurrentMontageTask->ReadyForActivation();
         
-		// Setup combo window timing
+		// Only setup combo window for non-final attacks
 		if (CurrentAttackIndex < CurrentCombo->AttackSequence.Num() - 1)
 		{
-			ULR_WaitComboWindow* WindowTask = ULR_WaitComboWindow::WaitComboWindow(
+			if (ComboWindowTask)
+			{
+				ComboWindowTask->EndTask();
+				ComboWindowTask = nullptr;
+			}
+            
+			ComboWindowTask = ULR_WaitComboWindow::WaitComboWindow(
 				this,
 				Attack.InputWindowStart,
 				Attack.InputWindowEnd,
 				GetWeaponInstance()->GetComboData()->ComboTimeoutDuration
 			);
             
-			if (WindowTask)
+			if (ComboWindowTask)
 			{
-				WindowTask->OnWindowOpen.AddDynamic(this, &ULRGA_MeleeWeapon::OnNotifyComboWindowOpen);
-				WindowTask->OnWindowClose.AddDynamic(this, &ULRGA_MeleeWeapon::OnNotifyComboWindowClose);
-				WindowTask->OnTimeout.AddDynamic(this, &ULRGA_MeleeWeapon::OnComboTimeout);
-				WindowTask->ReadyForActivation();
+				ComboWindowTask->OnWindowOpen.AddDynamic(this, &ULRGA_MeleeWeapon::OnNotifyComboWindowOpen);
+				ComboWindowTask->OnWindowClose.AddDynamic(this, &ULRGA_MeleeWeapon::OnNotifyComboWindowClose);
+				ComboWindowTask->OnTimeout.AddDynamic(this, &ULRGA_MeleeWeapon::OnComboTimeout);
+				ComboWindowTask->ReadyForActivation();
 			}
 		}
 	}
@@ -365,4 +451,24 @@ void ULRGA_MeleeWeapon::PlayAttackMontage(const FComboAttack& Attack)
 ULRWeaponInstance* ULRGA_MeleeWeapon::GetWeaponInstance() const
 {
 	return Cast<ULRWeaponInstance>(GetAssociatedEquipment());
+}
+
+void ULRGA_MeleeWeapon::ProcessBufferedInput()
+{
+	if (!bInputBuffered || !CurrentCombo)
+	{
+		return;
+	}
+    
+	if (CurrentAttackIndex < CurrentCombo->AttackSequence.Num() - 1)
+	{
+		CurrentAttackIndex++;
+		bInputBuffered = false;
+		bComboWindowOpen = false;
+        
+		GetWeaponInstance()->SetComboState(CurrentCombo->ComboID, CurrentAttackIndex);
+        
+		UE_LOG(LogTemp, Warning, TEXT("COMBO: Continuing to attack %d"), CurrentAttackIndex);
+		PerformAttack();
+	}
 }

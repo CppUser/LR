@@ -10,15 +10,21 @@ ULR_WaitComboWindow* ULR_WaitComboWindow::WaitComboWindow(UGameplayAbility* Owni
 	Task->WindowStart = WindowStartTime;
 	Task->WindowEnd = WindowEndTime;
 	Task->TimeoutDuration = Timeout;
+	
+	UE_LOG(LogTemp, Warning, TEXT("COMBO WINDOW: Task created - Start:%f, End:%f, Timeout:%f"), 
+		WindowStartTime, WindowEndTime, Timeout);
+	
 	return Task;
 }
 
 void ULR_WaitComboWindow::Activate()
 {
-	if (GetWorld())
+	UE_LOG(LogTemp, Warning, TEXT("COMBO WINDOW: Activating task"));
+    
+	if (UWorld* World = GetWorld())
 	{
 		// Start window timer
-		GetWorld()->GetTimerManager().SetTimer(
+		World->GetTimerManager().SetTimer(
 			StartTimer,
 			this,
 			&ULR_WaitComboWindow::OnWindowStarted,
@@ -26,8 +32,8 @@ void ULR_WaitComboWindow::Activate()
 			false
 		);
         
-		// End window timer
-		GetWorld()->GetTimerManager().SetTimer(
+		// End window timer  
+		World->GetTimerManager().SetTimer(
 			EndTimer,
 			this,
 			&ULR_WaitComboWindow::OnWindowEnded,
@@ -36,13 +42,19 @@ void ULR_WaitComboWindow::Activate()
 		);
         
 		// Timeout timer
-		GetWorld()->GetTimerManager().SetTimer(
+		World->GetTimerManager().SetTimer(
 			TimeoutTimer,
 			this,
 			&ULR_WaitComboWindow::OnTimedOut,
 			TimeoutDuration,
 			false
 		);
+        
+		UE_LOG(LogTemp, Warning, TEXT("COMBO WINDOW: Timers set"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("COMBO WINDOW: No world!"));
 	}
 }
 
@@ -60,16 +72,19 @@ void ULR_WaitComboWindow::OnDestroy(bool AbilityEnded)
 
 void ULR_WaitComboWindow::OnWindowStarted()
 {
+	UE_LOG(LogTemp, Warning, TEXT("COMBO WINDOW: Window STARTED"));
 	OnWindowOpen.Broadcast();
 }
 
 void ULR_WaitComboWindow::OnWindowEnded()
 {
+	UE_LOG(LogTemp, Warning, TEXT("COMBO WINDOW: Window ENDED"));
 	OnWindowClose.Broadcast();
 }
 
 void ULR_WaitComboWindow::OnTimedOut()
 {
+	UE_LOG(LogTemp, Warning, TEXT("COMBO WINDOW: TIMEOUT"));
 	OnTimeout.Broadcast();
 	EndTask();
 }
