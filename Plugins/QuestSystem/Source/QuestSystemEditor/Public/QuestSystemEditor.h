@@ -14,7 +14,7 @@ public:
 
     static inline IQuestSystemEditorModule& Get()
     {
-        return FModuleManager::LoadModuleChecked<IQuestSystemEditorModule>(TEXT("QuestEditor"));
+        return FModuleManager::LoadModuleChecked<IQuestSystemEditorModule>(TEXT("QuestSystemEditor"));
     }
 };
 
