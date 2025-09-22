@@ -3,7 +3,7 @@
 #pragma once
 
 #include "WorkflowOrientedApp/WorkflowCentricApplication.h"
-
+#include "QuestEditorToolbarBuilder.h"
 
 class QUESTSYSTEMEDITOR_API FQuestAssetEditor : public FWorkflowCentricApplication
 {
@@ -26,9 +26,22 @@ public:
 	virtual void FindInContentBrowser_Execute() override;
 	// End FAssetEditorToolkit interface
 
+	static FText GetLocalizedModeDescription(FName InMode);
+	
+	FORCEINLINE TSharedPtr<class FQuestEditorToolbarBuilder> GetToolbarBuilder() const { return ToolbarBuilder; }
+
+	void RestoreQuestGraph();
+	void SaveEditedObjectState();
+	void RegisterToolbarTabSpawner(const TSharedRef<class FTabManager>& InTabManager);
+	
 public:
 	static const FName ToolkitFName;
+	static const FName QuestMode;
 private:
 	class UQuest* QuestClass;
+
+	TSharedPtr<class IDetailsView> DetailsView;
+	TSharedPtr<class FDocumentTracker> DocumentTracker;
+	TSharedPtr<class FQuestEditorToolbarBuilder> ToolbarBuilder;
 
 };

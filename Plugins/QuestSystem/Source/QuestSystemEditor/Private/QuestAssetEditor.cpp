@@ -3,8 +3,14 @@
 
 #include "QuestAssetEditor.h"
 #include "Quest.h"
+#include "QuestEditorModes.h"
+#include "WorkflowOrientedApp/WorkflowTabManager.h"
+
 
 #define LOCTEXT_NAMESPACE "QuestAssetEditor"
+
+const FName FQuestAssetEditor::ToolkitFName(TEXT("HTNEditor"));
+const FName FQuestAssetEditor::QuestMode(TEXT("HTNMode"));
 
 FQuestAssetEditor::FQuestAssetEditor()
 	:QuestClass(nullptr)
@@ -19,6 +25,21 @@ void FQuestAssetEditor::InitQuestEditor(const EToolkitMode::Type Mode,
 	const TSharedPtr<class IToolkitHost>& InitToolkitHost, class UQuest* inObj)
 {
 	QuestClass = inObj;
+
+	if (!DocumentTracker.IsValid())
+	{
+		DocumentTracker = MakeShared<FDocumentTracker>();
+		DocumentTracker->Initialize(SharedThis(this));
+		//TODO: DocumentTracker->RegisterDocumentFactory(MakeShared<FQuestGraphEditorSummoner>(
+		// 	SharedThis(this),
+		// 	FQuestGraphEditorSummoner::FOnCreateGraphEditorWidget::CreateSP(this, &FQuestAssetEditor::CreateGraphEditorWidget)
+		// ));
+	}
+	
+	if (!ToolbarBuilder.IsValid())
+	{
+		ToolbarBuilder = MakeShared<FQuestEditorToolbarBuilder>(SharedThis(this));
+	}
 
 	TArray<UObject*> ObjectsToEdit;
 	if (QuestClass) ObjectsToEdit.Add(QuestClass);
@@ -37,7 +58,7 @@ void FQuestAssetEditor::InitQuestEditor(const EToolkitMode::Type Mode,
 			ObjectsToEdit
 		);
 
-		//TODO: Add App modes
+		AddApplicationMode(QuestMode, MakeShared<FQuestEditorApplicationMode>(SharedThis(this)));
 	}
 	else
 	{
@@ -50,19 +71,24 @@ void FQuestAssetEditor::InitQuestEditor(const EToolkitMode::Type Mode,
 		}
 	}
 
+	if (QuestClass)
+	{
+		SetCurrentMode(QuestMode);
+	}
 	
 	RegenerateMenusAndToolbars();
 }
 
 void FQuestAssetEditor::RegisterTabSpawners(const TSharedRef<class FTabManager>& InTabManager)
 {
+	WorkspaceMenuCategory = InTabManager->AddLocalWorkspaceMenuCategory(LOCTEXT("WorkspaceMenu_QuestEditor", "Quest Editor"));
+	DocumentTracker->SetTabManager(InTabManager);
 	FWorkflowCentricApplication::RegisterTabSpawners(InTabManager);
 }
 
 FName FQuestAssetEditor::GetToolkitFName() const
 {
-	//TODO:return ToolkitFName;
-	return FName("Quest Editor");
+	return ToolkitFName;
 }
 
 FText FQuestAssetEditor::GetBaseToolkitName() const
@@ -117,6 +143,43 @@ void FQuestAssetEditor::FindInContentBrowser_Execute()
 	Objects.Add(QuestClass);
 	//TODO: add other assets ?
 	GEditor->SyncBrowserToObjects(Objects);
+}
+
+FText FQuestAssetEditor::GetLocalizedModeDescription(FName InMode)
+{
+	static TMap<FName, FText> LocModes;
+	if (LocModes.Num() == 0)
+	{
+		LocModes.Add(QuestMode, LOCTEXT("QuestMode", "Quest System"));
+	}
+
+	check(InMode != NAME_None);
+	const FText* const Description = LocModes.Find(InMode);
+	check(Description);
+	return *Description;
+}
+
+void FQuestAssetEditor::RestoreQuestGraph()
+{
+	//TODO: implement me
+}
+
+void FQuestAssetEditor::SaveEditedObjectState()
+{
+	if (ensure(QuestClass))
+	{
+		//TODO:QuestClass->LastEditedDocuments.Reset();
+	}
+
+	if (ensure(DocumentTracker.IsValid()))
+	{
+		DocumentTracker->SaveAllState();
+	}
+}
+
+void FQuestAssetEditor::RegisterToolbarTabSpawner(const TSharedRef<class FTabManager>& InTabManager)
+{
+	FAssetEditorToolkit::RegisterTabSpawners(InTabManager);
 }
 
 #undef LOCTEXT_NAMESPACE
