@@ -325,6 +325,10 @@
 		{
 			"Name": "GooglePAD",
 			"Enabled": false
+		},
+		{
+			"Name": "QuestSystem",
+			"Enabled": true
 		}
 	]
 }
