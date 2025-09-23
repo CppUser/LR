@@ -4,6 +4,7 @@
 #include "QuestAssetEditor.h"
 #include "Quest.h"
 #include "QuestEditorModes.h"
+#include "QuestEditorTabFactories.h"
 #include "WorkflowOrientedApp/WorkflowTabManager.h"
 
 
@@ -30,10 +31,10 @@ void FQuestAssetEditor::InitQuestEditor(const EToolkitMode::Type Mode,
 	{
 		DocumentTracker = MakeShared<FDocumentTracker>();
 		DocumentTracker->Initialize(SharedThis(this));
-		//TODO: DocumentTracker->RegisterDocumentFactory(MakeShared<FQuestGraphEditorSummoner>(
-		// 	SharedThis(this),
-		// 	FQuestGraphEditorSummoner::FOnCreateGraphEditorWidget::CreateSP(this, &FQuestAssetEditor::CreateGraphEditorWidget)
-		// ));
+		DocumentTracker->RegisterDocumentFactory(MakeShared<FQuestGraphEditorSummoner>(
+		 	SharedThis(this),
+		 	FQuestGraphEditorSummoner::FOnCreateGraphEditorWidget::CreateSP(this, &FQuestAssetEditor::CreateGraphEditorWidget)
+		 ));
 	}
 	
 	if (!ToolbarBuilder.IsValid())
@@ -71,6 +72,11 @@ void FQuestAssetEditor::InitQuestEditor(const EToolkitMode::Type Mode,
 		}
 	}
 
+	if (DetailsView.IsValid())
+	{
+		DetailsView->SetObject(QuestClass);
+	}
+	
 	if (QuestClass)
 	{
 		SetCurrentMode(QuestMode);
@@ -159,6 +165,11 @@ FText FQuestAssetEditor::GetLocalizedModeDescription(FName InMode)
 	return *Description;
 }
 
+UQuest* FQuestAssetEditor::GetCurrentQuest() const
+{
+	return QuestClass;
+}
+
 void FQuestAssetEditor::RestoreQuestGraph()
 {
 	//TODO: implement me
@@ -168,7 +179,7 @@ void FQuestAssetEditor::SaveEditedObjectState()
 {
 	if (ensure(QuestClass))
 	{
-		//TODO:QuestClass->LastEditedDocuments.Reset();
+		QuestClass->LastEditedDocuments.Reset();
 	}
 
 	if (ensure(DocumentTracker.IsValid()))
@@ -181,5 +192,54 @@ void FQuestAssetEditor::RegisterToolbarTabSpawner(const TSharedRef<class FTabMan
 {
 	FAssetEditorToolkit::RegisterTabSpawners(InTabManager);
 }
+
+void FQuestAssetEditor::OnGraphEditorFocused(const TSharedRef<SGraphEditor>& InGraphEditor)
+{
+	//TODO: Implement me
+}
+
+TSharedRef<class SGraphEditor> FQuestAssetEditor::CreateGraphEditorWidget(UEdGraph* InGraph)
+{
+
+	const TSharedRef<SWidget> TitleBarWidget =
+		SNew(SBorder)
+		.BorderImage(FAppStyle::Get().GetBrush(TEXT("Graph.TitleBackground")))
+		.HAlign(HAlign_Fill)
+		[
+			SNew(SHorizontalBox)
+			+ SHorizontalBox::Slot()
+			.HAlign(HAlign_Center)
+			.FillWidth(1.f)
+			[
+				SNew(STextBlock)
+				.Text(LOCTEXT("HTNGraphLabel", "Hierarchical Task Network"))
+				.TextStyle(FAppStyle::Get(), TEXT("GraphBreadcrumbButtonText"))
+			]
+		];
+	
+	const bool bGraphIsEditable = InGraph->bEditable;
+	return SNew(SGraphEditor)
+		.TitleBar(TitleBarWidget)
+		.GraphToEdit(InGraph);
+}
+
+TSharedRef<class SWidget> FQuestAssetEditor::SpawnDetailsWidget()
+{
+	return
+		SNew(SVerticalBox)
+		+ SVerticalBox::Slot()
+		.FillHeight(1.0f)
+		.HAlign(HAlign_Fill)
+		[
+			DetailsView.ToSharedRef()
+		];
+}
+
+//TODO:
+// TSharedRef<class SWidget> FQuestAssetEditor::SpawnSearchWidget()
+// {
+// 	//TODO:return SAssignNew(SearchView, SQuestSearch, SharedThis(this));
+// 	return TSharedRef<class SWidget>();
+// }
 
 #undef LOCTEXT_NAMESPACE

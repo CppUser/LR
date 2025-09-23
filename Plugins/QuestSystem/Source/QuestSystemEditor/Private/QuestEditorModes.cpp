@@ -4,6 +4,7 @@
 #include "QuestEditorModes.h"
 
 #include "QuestAssetEditor.h"
+#include "QuestEditorTabFactories.h"
 #include "QuestEditorTabIDs.h"
 
 #define LOCTEXT_NAMESPACE "QuestEditorApplicationMode"
@@ -41,6 +42,9 @@ FQuestEditorApplicationMode::FQuestEditorApplicationMode(TSharedPtr<class FQuest
 			)
 		);
 
+	AllowedTabs.RegisterFactory(MakeShared<FQuestDetailsSummoner>(InEditor));
+	AllowedTabs.RegisterFactory(MakeShared<FQuestSearchSummoner>(InEditor));
+	
 	InEditor->GetToolbarBuilder()->AddAssetToolbar(ToolbarExtender);
 	InEditor->GetToolbarBuilder()->AddModesToolbar(ToolbarExtender);
 	InEditor->GetToolbarBuilder()->AddDebuggerToolbar(ToolbarExtender);

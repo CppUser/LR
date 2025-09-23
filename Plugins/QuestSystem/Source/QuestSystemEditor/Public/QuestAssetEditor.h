@@ -5,7 +5,9 @@
 #include "WorkflowOrientedApp/WorkflowCentricApplication.h"
 #include "QuestEditorToolbarBuilder.h"
 
-class QUESTSYSTEMEDITOR_API FQuestAssetEditor : public FWorkflowCentricApplication
+class UQuest;
+
+class QUESTSYSTEMEDITOR_API FQuestAssetEditor : public FWorkflowCentricApplication, public FNotifyHook
 {
 public:
 	FQuestAssetEditor();
@@ -30,17 +32,25 @@ public:
 	
 	FORCEINLINE TSharedPtr<class FQuestEditorToolbarBuilder> GetToolbarBuilder() const { return ToolbarBuilder; }
 
+	UQuest* GetCurrentQuest() const;
 	void RestoreQuestGraph();
 	void SaveEditedObjectState();
 	void RegisterToolbarTabSpawner(const TSharedRef<class FTabManager>& InTabManager);
+	void OnGraphEditorFocused(const TSharedRef<SGraphEditor>& InGraphEditor);
 	
+	TSharedRef<class SWidget> SpawnDetailsWidget();
+	//TODO:TSharedRef<class SWidget> SpawnSearchWidget();
+private:
+	TSharedRef<class SGraphEditor> CreateGraphEditorWidget(UEdGraph* InGraph);
 public:
 	static const FName ToolkitFName;
 	static const FName QuestMode;
+
 private:
 	class UQuest* QuestClass;
 
 	TSharedPtr<class IDetailsView> DetailsView;
+	TSharedPtr<class SCompoundWidget> SearchView;
 	TSharedPtr<class FDocumentTracker> DocumentTracker;
 	TSharedPtr<class FQuestEditorToolbarBuilder> ToolbarBuilder;
 
