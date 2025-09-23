@@ -13,7 +13,7 @@ FQuestEditorApplicationMode::FQuestEditorApplicationMode(TSharedPtr<class FQuest
 	: FApplicationMode(FQuestAssetEditor::QuestMode,FQuestAssetEditor::GetLocalizedModeDescription)
 	, EditorWeakPtr(InEditor)
 {
-	TabLayout = FTabManager::NewLayout(TEXT("Standalone_HTN_Layout_v2"))
+	TabLayout = FTabManager::NewLayout(TEXT("Standalone_Quest_Layout_v3"))
 		->AddArea
 		(
 			FTabManager::NewPrimaryArea()->SetOrientation(Orient_Horizontal)
@@ -21,7 +21,7 @@ FQuestEditorApplicationMode::FQuestEditorApplicationMode(TSharedPtr<class FQuest
 			(
 				FTabManager::NewStack()
 				->SetSizeCoefficient(0.7f)
-				->AddTab(FQuestEditorTabIds::GraphEditorID, ETabState::ClosedTab)
+				->AddTab(FQuestEditorTabIds::GraphEditorID, ETabState::OpenedTab) // FIXED: Changed to OpenedTab
 			)
 			->Split
 			(
@@ -44,10 +44,11 @@ FQuestEditorApplicationMode::FQuestEditorApplicationMode(TSharedPtr<class FQuest
 
 	AllowedTabs.RegisterFactory(MakeShared<FQuestDetailsSummoner>(InEditor));
 	AllowedTabs.RegisterFactory(MakeShared<FQuestSearchSummoner>(InEditor));
-	
+    
 	InEditor->GetToolbarBuilder()->AddAssetToolbar(ToolbarExtender);
 	InEditor->GetToolbarBuilder()->AddModesToolbar(ToolbarExtender);
 	InEditor->GetToolbarBuilder()->AddDebuggerToolbar(ToolbarExtender);
+
 }
 
 void FQuestEditorApplicationMode::RegisterTabFactories(TSharedPtr<FTabManager> InTabManager)

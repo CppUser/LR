@@ -5,6 +5,7 @@
 #include "Quest.h"
 #include "QuestEditorModes.h"
 #include "QuestEditorTabFactories.h"
+#include "Kismet2/BlueprintEditorUtils.h"
 #include "WorkflowOrientedApp/WorkflowTabManager.h"
 
 
@@ -26,6 +27,23 @@ void FQuestAssetEditor::InitQuestEditor(const EToolkitMode::Type Mode,
 	const TSharedPtr<class IToolkitHost>& InitToolkitHost, class UQuest* inObj)
 {
 	QuestClass = inObj;
+
+	FPropertyEditorModule& PropertyEditorModule = 
+		FModuleManager::GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
+    
+	FDetailsViewArgs DetailsViewArgs;
+	DetailsViewArgs.bAllowSearch = true;
+	DetailsViewArgs.bHideSelectionTip = true;
+	DetailsViewArgs.bLockable = false;
+	DetailsViewArgs.bSearchInitialKeyFocus = false;
+	DetailsViewArgs.bUpdatesFromSelection = true;
+	DetailsViewArgs.bShowOptions = true;
+	DetailsViewArgs.bShowModifiedPropertiesOption = false;
+    
+	DetailsView = PropertyEditorModule.CreateDetailView(DetailsViewArgs);
+	DetailsView->SetObject(QuestClass);
+
+	
 
 	if (!DocumentTracker.IsValid())
 	{
@@ -172,7 +190,8 @@ UQuest* FQuestAssetEditor::GetCurrentQuest() const
 
 void FQuestAssetEditor::RestoreQuestGraph()
 {
-	//TODO: implement me
+	//TODO:
+	
 }
 
 void FQuestAssetEditor::SaveEditedObjectState()
@@ -201,6 +220,13 @@ void FQuestAssetEditor::OnGraphEditorFocused(const TSharedRef<SGraphEditor>& InG
 TSharedRef<class SGraphEditor> FQuestAssetEditor::CreateGraphEditorWidget(UEdGraph* InGraph)
 {
 
+	if (!InGraph)
+	{
+		// Return a placeholder if no graph
+		return SNew(SGraphEditor)
+			.GraphToEdit(nullptr);
+	}
+	
 	const TSharedRef<SWidget> TitleBarWidget =
 		SNew(SBorder)
 		.BorderImage(FAppStyle::Get().GetBrush(TEXT("Graph.TitleBackground")))

@@ -76,6 +76,8 @@ FQuestGraphEditorSummoner::FQuestGraphEditorSummoner(TSharedPtr<class FQuestAsse
 	QuestEditor(InQuestEditor),
 	OnCreateGraphEditorWidget(CreateGraphEditorWidgetCallback)
 {
+	TabLabel = LOCTEXT("GraphTab", "Graph");
+	TabIcon = FSlateIcon(FAppStyle::GetAppStyleSetName(), "GraphEditor.EventGraph_16x");
 }
 
 void FQuestGraphEditorSummoner::OnTabActivated(TSharedPtr<SDockTab> Tab) const
