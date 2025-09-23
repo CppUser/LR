@@ -43,6 +43,7 @@ public:
 	
 	virtual void OnTabActivated(TSharedPtr<SDockTab> Tab) const override;
 	virtual void OnTabRefreshed(TSharedPtr<SDockTab> Tab) const override;
+	
 protected:
 	virtual TAttribute<FText> ConstructTabNameForObject(UEdGraph* DocumentID) const override;
 	virtual TSharedRef<SWidget> CreateTabBodyForObject(const FWorkflowTabSpawnInfo& Info, UEdGraph* DocumentID) const override;

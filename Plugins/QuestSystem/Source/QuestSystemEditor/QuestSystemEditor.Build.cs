@@ -35,7 +35,11 @@ public class QuestSystemEditor : ModuleRules
                 "AIModule",
                 "ToolMenus",
                 "PropertyEditor",
-                "QuestSystem"
+                "QuestSystem",
+                "AIGraph",
+                "BlueprintGraph",
+                "KismetCompiler",
+                
             }
         );
     }

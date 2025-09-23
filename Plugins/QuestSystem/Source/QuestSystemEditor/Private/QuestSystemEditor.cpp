@@ -6,6 +6,7 @@
 
 #define LOCTEXT_NAMESPACE "FQuestSystemEditorModule"
 
+
 void FQuestSystemEditorModule::StartupModule()
 {
 	MenuExtensibilityManager = MakeShared<FExtensibilityManager>();

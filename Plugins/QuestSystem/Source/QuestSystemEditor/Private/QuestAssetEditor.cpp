@@ -41,9 +41,7 @@ void FQuestAssetEditor::InitQuestEditor(const EToolkitMode::Type Mode,
 	DetailsViewArgs.bShowModifiedPropertiesOption = false;
     
 	DetailsView = PropertyEditorModule.CreateDetailView(DetailsViewArgs);
-	DetailsView->SetObject(QuestClass);
-
-	
+		
 
 	if (!DocumentTracker.IsValid())
 	{
@@ -227,6 +225,11 @@ TSharedRef<class SGraphEditor> FQuestAssetEditor::CreateGraphEditorWidget(UEdGra
 			.GraphToEdit(nullptr);
 	}
 	
+
+	FGraphAppearanceInfo AppearanceInfo;
+	AppearanceInfo.CornerText = LOCTEXT("AppearanceCornerText", "Quest System");
+
+	
 	const TSharedRef<SWidget> TitleBarWidget =
 		SNew(SBorder)
 		.BorderImage(FAppStyle::Get().GetBrush(TEXT("Graph.TitleBackground")))
@@ -238,7 +241,7 @@ TSharedRef<class SGraphEditor> FQuestAssetEditor::CreateGraphEditorWidget(UEdGra
 			.FillWidth(1.f)
 			[
 				SNew(STextBlock)
-				.Text(LOCTEXT("HTNGraphLabel", "Hierarchical Task Network"))
+				.Text(LOCTEXT("QuestGraphLabel", "QuestSystem Graph"))
 				.TextStyle(FAppStyle::Get(), TEXT("GraphBreadcrumbButtonText"))
 			]
 		];
@@ -246,6 +249,7 @@ TSharedRef<class SGraphEditor> FQuestAssetEditor::CreateGraphEditorWidget(UEdGra
 	const bool bGraphIsEditable = InGraph->bEditable;
 	return SNew(SGraphEditor)
 		.TitleBar(TitleBarWidget)
+		.Appearance(AppearanceInfo)
 		.GraphToEdit(InGraph);
 }
 
