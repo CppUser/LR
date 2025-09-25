@@ -3,8 +3,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "HTNTask.h"
 #include "UObject/Object.h"
+#include "SmartObjectSubsystem.h"
 #include "HTNPrimitiveTask.generated.h"
 
 /**
@@ -19,7 +21,7 @@ public:
 	virtual void Tick_Implementation(float DeltaTime) override;
 	virtual void Interrupt_Implementation() override;
 
-	UFUNCTION(BlueprintImplementableEvent, Category = "HTN")
+	UFUNCTION(BlueprintNativeEvent, Category = "HTN")
 	void OnExecuteAction(UHTNWorldState* WorldState);
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HTN")
@@ -33,4 +35,29 @@ public:
 
 protected:
 	float CurrentExecutionTime = 0.0f;
+};
+
+
+
+UCLASS(BlueprintType)
+class LR_API UHTNSmartObjectTask : public UHTNPrimitiveTask
+{
+	GENERATED_BODY()
+
+public:
+	
+	virtual void OnExecuteAction_Implementation(UHTNWorldState* WorldState) override;
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SmartObject")
+	FGameplayTagQuery SmartObjectQuery;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SmartObject")
+	float SearchRadius = 1000.0f;
+
+protected:
+	UPROPERTY()
+	USmartObjectSubsystem* SmartObjectSubsystem = nullptr;
+
+	FSmartObjectClaimHandle ClaimedObject;
 };

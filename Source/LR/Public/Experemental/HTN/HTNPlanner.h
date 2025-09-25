@@ -87,3 +87,57 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HTN")
 	bool bUseAsyncPlanning = false;
 };
+
+
+class FHTNPlanningTask : public FNonAbandonableTask
+{
+public:
+	FHTNPlanningTask(
+		UHTNTask* InRootTask,
+		UHTNWorldState* InWorldState,
+		UHTNPlanner* InPlanner
+	);
+
+	void DoWork();
+    
+	FORCEINLINE TStatId GetStatId() const
+	{
+		RETURN_QUICK_DECLARE_CYCLE_STAT(FHTNPlanningTask, STATGROUP_ThreadPoolAsyncTasks);
+	}
+
+	FHTNPlan ResultPlan;
+
+private:
+	UHTNTask* RootTask;
+	UHTNWorldState* WorldState;
+	UHTNPlanner* Planner;
+};
+
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHTNAsyncPlanComplete, const FHTNPlan&, Plan);
+
+UCLASS(BlueprintType)
+class LR_API UHTNAsyncPlanner : public UHTNPlanner
+{
+	GENERATED_BODY()
+
+public:
+	
+	UFUNCTION(BlueprintCallable, Category = "HTN")
+	void CreatePlanAsync(UHTNTask* RootTask, UHTNWorldState* InitialState);
+
+	UFUNCTION(BlueprintCallable, Category = "HTN")
+	bool IsPlanningInProgress() const;
+
+	UFUNCTION(BlueprintCallable, Category = "HTN")
+	void CancelAsyncPlanning();
+
+protected:
+	void OnPlanningComplete();
+public:
+	UPROPERTY(BlueprintAssignable)
+	FHTNAsyncPlanComplete OnAsyncPlanComplete;
+protected:
+	TUniquePtr<FAsyncTask<FHTNPlanningTask>> CurrentPlanningTask;
+    FTimerHandle PlanningCheckTimer;
+};

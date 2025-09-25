@@ -87,3 +87,36 @@ void UHTNTask::SetStatus(EHTNTaskStatus NewStatus)
 		OnTaskCompleted.Broadcast(this, Status);
 	}
 }
+
+////////////////////////////////////////////////
+///
+////////////////////////////////////////////////
+void UHTNTaskPool::InitializePool(TSubclassOf<UHTNTask> TaskClass)
+{
+}
+
+UHTNTask* UHTNTaskPool::GetTask(TSubclassOf<UHTNTask> TaskClass)
+{
+	//TODO: implement me
+	return nullptr;
+}
+
+void UHTNTaskPool::ReturnTask(UHTNTask* Task)
+{
+}
+
+void UHTNTaskPool::ClearPool()
+{
+}
+///////////////////////////////////////////////////
+///
+//////////////////////////////////////////////////
+
+void UHTNMassEntityTask::Execute_Implementation(UHTNWorldState* WorldState)
+{
+	Super::Execute_Implementation(WorldState);
+}
+
+void UHTNMassEntityTask::ProcessEntities(UMassEntitySubsystem* EntitySubsystem)
+{
+}

@@ -49,3 +49,17 @@ void UHTNPrimitiveTask::Interrupt_Implementation()
 	Super::Interrupt_Implementation();
 	CurrentExecutionTime = 0.0f;
 }
+
+
+
+void UHTNPrimitiveTask::OnExecuteAction_Implementation(UHTNWorldState* WorldState)
+{
+}
+
+///////////////////////////////////////////////////////////////
+///
+///////////////////////////////////////////////////////////////
+void UHTNSmartObjectTask::OnExecuteAction_Implementation(UHTNWorldState* WorldState)
+{
+	Super::OnExecuteAction_Implementation(WorldState);
+}

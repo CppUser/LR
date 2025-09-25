@@ -232,3 +232,24 @@ float UHTNPlanner::EvaluatePlanUtility(const FHTNPlan& Plan, UHTNWorldState* Wor
     
 	return TotalUtility;
 }
+
+/////////////////////////////////////////////////////
+///
+////////////////////////////////////////////////////
+void UHTNAsyncPlanner::CreatePlanAsync(UHTNTask* RootTask, UHTNWorldState* InitialState)
+{
+}
+
+bool UHTNAsyncPlanner::IsPlanningInProgress() const
+{
+	//TODO: implement me
+	return false;
+}
+
+void UHTNAsyncPlanner::CancelAsyncPlanning()
+{
+}
+
+void UHTNAsyncPlanner::OnPlanningComplete()
+{
+}

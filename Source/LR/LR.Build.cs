@@ -52,6 +52,8 @@ public class LR : ModuleRules
 				"AnimGraphRuntime",
 				"GameplayStateTreeModule",
 				"UIExtension",
+				"SmartObjectsModule",
+				"MassEntity"
 				
 			}
 		);
