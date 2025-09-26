@@ -3,6 +3,7 @@
 
 #include "Experemental/HTN/HTNTask.h"
 
+#include "MassExecutionContext.h"
 #include "Experemental/HTN/HTNWorldState.h"
 
 bool UHTNTask::CanExecute_Implementation(UHTNWorldState* WorldState) const
@@ -93,20 +94,89 @@ void UHTNTask::SetStatus(EHTNTaskStatus NewStatus)
 ////////////////////////////////////////////////
 void UHTNTaskPool::InitializePool(TSubclassOf<UHTNTask> TaskClass)
 {
+	if (!TaskClass) return;
+    
+	UClass* Class = TaskClass.Get();
+    
+	if (!AvailableTasks.Contains(Class))
+	{
+		AvailableTasks.Add(Class, TArray<UHTNTask*>());
+		InUseTasks.Add(Class, TArray<UHTNTask*>());
+	}
+    
+	for (int32 i = 0; i < InitialPoolSize; i++)
+	{
+		UHTNTask* NewTask = NewObject<UHTNTask>(this, TaskClass);
+		AvailableTasks[Class].Add(NewTask);
+	}
 }
 
 UHTNTask* UHTNTaskPool::GetTask(TSubclassOf<UHTNTask> TaskClass)
 {
-	//TODO: implement me
-	return nullptr;
+	if (!TaskClass) return nullptr;
+    
+	UClass* Class = TaskClass.Get();
+    
+	if (!AvailableTasks.Contains(Class))
+	{
+		InitializePool(TaskClass);
+	}
+    
+	TArray<UHTNTask*>& Available = AvailableTasks[Class];
+	TArray<UHTNTask*>& InUse = InUseTasks[Class];
+    
+	UHTNTask* Task = nullptr;
+    
+	if (Available.Num() > 0)
+	{
+		Task = Available.Pop();
+	}
+	else if (InUse.Num() < MaxPoolSize)
+	{
+		Task = NewObject<UHTNTask>(this, TaskClass);
+	}
+	else
+	{
+		UE_LOG(LogHTN, Warning, TEXT("Task pool exhausted for %s"), *Class->GetName());
+		return nullptr;
+	}
+    
+	if (Task)
+	{
+		InUse.Add(Task);
+        
+		Task->Status = EHTNTaskStatus::None;
+		Task->Priority = 0;
+		Task->UtilityScore = 0.0f;
+	}
+    
+	return Task;
 }
 
 void UHTNTaskPool::ReturnTask(UHTNTask* Task)
 {
+	if (!Task) return;
+    
+	UClass* Class = Task->GetClass();
+    
+	if (!InUseTasks.Contains(Class)) return;
+    
+	TArray<UHTNTask*>& InUse = InUseTasks[Class];
+	TArray<UHTNTask*>& Available = AvailableTasks[Class];
+    
+	if (InUse.Remove(Task) > 0)
+	{
+		Task->Status = EHTNTaskStatus::None;
+		Task->OnTaskCompleted.Clear();
+        
+		Available.Add(Task);
+	}
 }
 
 void UHTNTaskPool::ClearPool()
 {
+	AvailableTasks.Empty();
+	InUseTasks.Empty();
 }
 ///////////////////////////////////////////////////
 ///
@@ -115,8 +185,49 @@ void UHTNTaskPool::ClearPool()
 void UHTNMassEntityTask::Execute_Implementation(UHTNWorldState* WorldState)
 {
 	Super::Execute_Implementation(WorldState);
+
+	UWorld* World = GetWorld();
+	if (!World) 
+	{
+		SetStatus(EHTNTaskStatus::Failed);
+		return;
+	}
+    
+	UMassEntitySubsystem* EntitySubsystem = World->GetSubsystem<UMassEntitySubsystem>();
+	if (!EntitySubsystem)
+	{
+		UE_LOG(LogHTN, Error, TEXT("MassEntitySubsystem not found"));
+		SetStatus(EHTNTaskStatus::Failed);
+		return;
+	}
+    
+	ProcessEntities(EntitySubsystem);
+    
+	SetStatus(EHTNTaskStatus::Success);
 }
 
 void UHTNMassEntityTask::ProcessEntities(UMassEntitySubsystem* EntitySubsystem)
 {
+	if (!EntitySubsystem) return;
+
+	//TODO: Fix implementation
+	
+	// FMassEntityManager& EntityManager = EntitySubsystem->GetMutableEntityManager();
+	// FMassExecutionContext ExecutionContext(EntityManager.AsShared());
+ //    
+	// EntityQuery.ForEachEntityChunk(EntityManager, ExecutionContext, 
+	// 	[this, &WorldState = this->WorldState](FMassExecutionContext& Context)
+	// {
+	// 	const int32 NumEntities = Context.GetNumEntities();
+ //        
+	// 	for (int32 i = 0; i < NumEntities && i < MaxEntitiesToProcess; i++)
+	// 	{
+	// 		FHTNWorldProperty EntityProperty;
+	// 		EntityProperty.PropertyName = FName(*FString::Printf(TEXT("Entity_%d_Processed"), i));
+	// 		EntityProperty.BoolValue = true;
+	// 		WorldState->SetProperty(EntityProperty.PropertyName, EntityProperty);
+	// 	}
+	// });
+ //    
+	// UE_LOG(LogHTN, Log, TEXT("Processed Mass entities"));
 }

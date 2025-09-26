@@ -2,6 +2,9 @@
 
 
 #include "Experemental/HTN/HTNPrimitiveTask.h"
+#include "SmartObjectSubsystem.h"
+#include "GameplayTagContainer.h"
+#include "Experemental/HTN/HTNWorldState.h"
 
 void UHTNPrimitiveTask::Execute_Implementation(UHTNWorldState* WorldState)
 {
@@ -62,4 +65,56 @@ void UHTNPrimitiveTask::OnExecuteAction_Implementation(UHTNWorldState* WorldStat
 void UHTNSmartObjectTask::OnExecuteAction_Implementation(UHTNWorldState* WorldState)
 {
 	Super::OnExecuteAction_Implementation(WorldState);
+
+	//TODO: Fix implementation
+	
+	// UWorld* World = GetWorld();
+	// if (!World) 
+	// {
+	// 	SetStatus(EHTNTaskStatus::Failed);
+	// 	return;
+	// }
+ //    
+	// SmartObjectSubsystem = USmartObjectSubsystem::GetCurrent(World);
+	// if (!SmartObjectSubsystem)
+	// {
+	// 	UE_LOG(LogHTN, Error, TEXT("SmartObjectSubsystem not found"));
+	// 	SetStatus(EHTNTaskStatus::Failed);
+	// 	return;
+	// }
+ //    
+	// FSmartObjectRequest Request;
+	// Request.QueryBox = FBox(FVector(-SearchRadius), FVector(SearchRadius));
+	// Request.Filter.UserTags = SmartObjectQuery.GetGameplayTagArray();
+ //    
+	// TArray<FSmartObjectRequestResult> Results;
+	// SmartObjectSubsystem->FindSmartObjects(Request, Results);
+ //    
+	// if (Results.Num() == 0)
+	// {
+	// 	UE_LOG(LogHTN, Warning, TEXT("No smart objects found matching query"));
+	// 	SetStatus(EHTNTaskStatus::Failed);
+	// 	return;
+	// }
+ //    
+	// for (const FSmartObjectRequestResult& Result : Results)
+	// {
+	// 	ClaimedObject = SmartObjectSubsystem->Claim(Result);
+	// 	if (ClaimedObject.IsValid())
+	// 	{
+	// 		UE_LOG(LogHTN, Log, TEXT("Claimed smart object"));
+ //            
+	// 		FHTNWorldProperty SmartObjProperty;
+	// 		SmartObjProperty.PropertyName = TEXT("SmartObjectClaimed");
+	// 		SmartObjProperty.BoolValue = true;
+	// 		WorldState->SetProperty(SmartObjProperty.PropertyName, SmartObjProperty);
+ //            
+	// 		SmartObjectSubsystem->Use(ClaimedObject);
+ //            
+	// 		SetStatus(EHTNTaskStatus::Success);
+	// 		return;
+	// 	}
+	// }
+ //    
+	// SetStatus(EHTNTaskStatus::Failed);
 }
