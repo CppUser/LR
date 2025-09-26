@@ -68,11 +68,13 @@ void ALRPlayerController::OnUnPossess()
 void ALRPlayerController::InitPlayerState()
 {
 	Super::InitPlayerState();
+	BroadcastOnPlayerStateChanged();
 }
 
 void ALRPlayerController::CleanupPlayerState()
 {
 	Super::CleanupPlayerState();
+	BroadcastOnPlayerStateChanged();
 }
 
 void ALRPlayerController::ReceivedPlayer()
@@ -103,4 +105,64 @@ void ALRPlayerController::PostProcessInput(const float DeltaTime, const bool bGa
 	}
 	
 	Super::PostProcessInput(DeltaTime, bGamePaused);
+}
+
+void ALRPlayerController::SetGenericTeamId(const FGenericTeamId& NewTeamID)
+{
+	UE_LOG(LogTemp, Error, TEXT("You can't set the team ID on a player controller (%s); it's driven by the associated player state"), *GetPathNameSafe(this));
+}
+
+FGenericTeamId ALRPlayerController::GetGenericTeamId() const
+{
+	if (const ILRTeamAgentInterface* PSWithTeamInterface = Cast<ILRTeamAgentInterface>(PlayerState))
+	{
+		return PSWithTeamInterface->GetGenericTeamId();
+	}
+	return FGenericTeamId::NoTeam;
+}
+
+FOnTeamIndexChangedDelegate* ALRPlayerController::GetOnTeamIndexChangedDelegate()
+{
+	return &OnTeamChangedDelegate;
+}
+
+void ALRPlayerController::OnPlayerStateChanged()
+{
+}
+
+void ALRPlayerController::OnPlayerStateChangedTeam(UObject* TeamAgent, int32 OldTeam, int32 NewTeam)
+{
+	ConditionalBroadcastTeamChanged(this, IntegerToGenericTeamId(OldTeam), IntegerToGenericTeamId(NewTeam));
+}
+
+void ALRPlayerController::BroadcastOnPlayerStateChanged()
+{
+	OnPlayerStateChanged();
+
+	// Unbind from the old player state, if any
+	FGenericTeamId OldTeamID = FGenericTeamId::NoTeam;
+	if (LastSeenPlayerState != nullptr)
+	{
+		if (ILRTeamAgentInterface* PlayerStateTeamInterface = Cast<ILRTeamAgentInterface>(LastSeenPlayerState))
+		{
+			OldTeamID = PlayerStateTeamInterface->GetGenericTeamId();
+			PlayerStateTeamInterface->GetTeamChangedDelegateChecked().RemoveAll(this);
+		}
+	}
+
+	// Bind to the new player state, if any
+	FGenericTeamId NewTeamID = FGenericTeamId::NoTeam;
+	if (PlayerState != nullptr)
+	{
+		if (ILRTeamAgentInterface* PlayerStateTeamInterface = Cast<ILRTeamAgentInterface>(PlayerState))
+		{
+			NewTeamID = PlayerStateTeamInterface->GetGenericTeamId();
+			PlayerStateTeamInterface->GetTeamChangedDelegateChecked().AddDynamic(this, &ThisClass::OnPlayerStateChangedTeam);
+		}
+	}
+
+	// Broadcast the team change (if it really has)
+	ConditionalBroadcastTeamChanged(this, OldTeamID, NewTeamID);
+
+	LastSeenPlayerState = PlayerState;
 }

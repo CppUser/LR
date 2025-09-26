@@ -91,8 +91,112 @@ void ALRCharacter::Reset()
 
 void ALRCharacter::NotifyControllerChanged()
 {
-	//TODO: implement 
+	const FGenericTeamId OldTeamId = GetGenericTeamId();
+
 	Super::NotifyControllerChanged();
+
+	if (Controller != nullptr)
+	{
+		if (ILRTeamAgentInterface* ControllerWithTeam = Cast<ILRTeamAgentInterface>(Controller))
+		{
+			MyTeamID = ControllerWithTeam->GetGenericTeamId();
+			ConditionalBroadcastTeamChanged(this, OldTeamId, MyTeamID);
+		}
+	}
+}
+
+void ALRCharacter::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
+{
+	if (const ULRAbilitySystemComponent* LRASC = GetLRAbilitySystemComponent())
+	{
+		LRASC->GetOwnedGameplayTags(TagContainer);
+	}
+}
+
+bool ALRCharacter::HasMatchingGameplayTag(FGameplayTag TagToCheck) const
+{
+	if (const ULRAbilitySystemComponent* LRASC = GetLRAbilitySystemComponent())
+	{
+		return LRASC->HasMatchingGameplayTag(TagToCheck);
+	}
+
+	return false;
+}
+
+bool ALRCharacter::HasAllMatchingGameplayTags(const FGameplayTagContainer& TagContainer) const
+{
+	if (const ULRAbilitySystemComponent* LRASC = GetLRAbilitySystemComponent())
+	{
+		return LRASC->HasAllMatchingGameplayTags(TagContainer);
+	}
+
+	return false;
+}
+
+bool ALRCharacter::HasAnyMatchingGameplayTags(const FGameplayTagContainer& TagContainer) const
+{
+	if (const ULRAbilitySystemComponent* LRASC = GetLRAbilitySystemComponent())
+	{
+		return LRASC->HasAnyMatchingGameplayTags(TagContainer);
+	}
+
+	return false;
+}
+
+void ALRCharacter::SetGenericTeamId(const FGenericTeamId& NewTeamID)
+{
+	if (GetController() == nullptr)
+	{
+		const FGenericTeamId OldTeamID = MyTeamID;
+		MyTeamID = NewTeamID;
+		ConditionalBroadcastTeamChanged(this, OldTeamID, MyTeamID);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("You can't set the team ID on a possessed character (%s); it's driven by the associated controller"), *GetPathNameSafe(this));
+	}
+}
+
+FGenericTeamId ALRCharacter::GetGenericTeamId() const
+{
+	return MyTeamID;
+}
+
+FOnTeamIndexChangedDelegate* ALRCharacter::GetOnTeamIndexChangedDelegate()
+{
+	return &OnTeamChangedDelegate;
+}
+
+void ALRCharacter::InitializeGameplayTags()
+{
+	// if (ULRAbilitySystemComponent* LRASC = GetLRAbilitySystemComponent())
+	// {
+	// 	for (const TPair<uint8, FGameplayTag>& TagMapping : LRGameplayTags::MovementModeTagMap)
+	// 	{
+	// 		if (TagMapping.Value.IsValid())
+	// 		{
+	// 			LRASC->SetLooseGameplayTagCount(TagMapping.Value, 0);
+	// 		}
+	// 	}
+	//
+	// 	for (const TPair<uint8, FGameplayTag>& TagMapping : LRGameplayTags::CustomMovementModeTagMap)
+	// 	{
+	// 		if (TagMapping.Value.IsValid())
+	// 		{
+	// 			LRASC->SetLooseGameplayTagCount(TagMapping.Value, 0);
+	// 		}
+	// 	}
+	//
+	// 	// ULRCharacterMovementComponent* LRMoveComp = CastChecked<ULRCharacterMovementComponent>(GetCharacterMovement());
+	// 	//TODO: SetMovementModeTag(LRMoveComp->MovementMode, LRMoveComp->CustomMovementMode, true);
+	//}
+}
+
+void ALRCharacter::OnControllerChangedTeam(UObject* TeamAgent, int32 OldTeam, int32 NewTeam)
+{
+	const FGenericTeamId MyOldTeamID = MyTeamID;
+	MyTeamID = IntegerToGenericTeamId(NewTeam);
+	ConditionalBroadcastTeamChanged(this, MyOldTeamID, MyTeamID);
 }
 
 void ALRCharacter::OnAbilitySystemInitialized()
@@ -101,7 +205,8 @@ void ALRCharacter::OnAbilitySystemInitialized()
 	check(ASC);
 
 	//TODO:HealthComponent->InitializeWithAbilitySystem(ASC);
-	//TODO:InitializeGameplayTags();
+
+	InitializeGameplayTags();
 }
 
 void ALRCharacter::OnAbilitySystemUninitialized()
@@ -111,14 +216,35 @@ void ALRCharacter::OnAbilitySystemUninitialized()
 
 void ALRCharacter::PossessedBy(AController* NewController)
 {
+	const FGenericTeamId OldTeamID = MyTeamID;
+
 	Super::PossessedBy(NewController);
+	
 	PawnExtComponent->HandleControllerChanged();
+
+	if (ILRTeamAgentInterface* ControllerAsTeamProvider = Cast<ILRTeamAgentInterface>(NewController))
+	{
+		MyTeamID = ControllerAsTeamProvider->GetGenericTeamId();
+		ControllerAsTeamProvider->GetTeamChangedDelegateChecked().AddDynamic(this, &ThisClass::OnControllerChangedTeam);
+	}
+	ConditionalBroadcastTeamChanged(this, OldTeamID, MyTeamID);
 }
 
 void ALRCharacter::UnPossessed()
 {
+	AController* const OldController = Controller;
+
+	const FGenericTeamId OldTeamID = MyTeamID;
+	if (ILRTeamAgentInterface* ControllerAsTeamProvider = Cast<ILRTeamAgentInterface>(OldController))
+	{
+		ControllerAsTeamProvider->GetTeamChangedDelegateChecked().RemoveAll(this);
+	}
+	
 	Super::UnPossessed();
 	PawnExtComponent->HandleControllerChanged();
+
+	MyTeamID = DetermineNewTeamAfterPossessionEnds(OldTeamID);
+	ConditionalBroadcastTeamChanged(this, OldTeamID, MyTeamID);
 }
 
 void ALRCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)

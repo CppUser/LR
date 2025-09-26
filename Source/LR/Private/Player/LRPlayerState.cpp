@@ -24,6 +24,7 @@ ALRPlayerState::ALRPlayerState(const FObjectInitializer& ObjectInitializer) : Su
 	HealthSet = CreateDefaultSubobject<ULRHealthAttribSet>(TEXT("HealthSet"));
 	CombatSet = CreateDefaultSubobject<ULRCombatAttribSet>(TEXT("CombatSet"));
 
+	MyTeamID = FGenericTeamId::NoTeam;
 }
 
 ALRPlayerController* ALRPlayerState::GetLRPlayerController() const
@@ -87,6 +88,51 @@ void ALRPlayerState::CopyProperties(APlayerState* PlayerState)
 {
 	Super::CopyProperties(PlayerState);
 	//@TODO: Copy stats
+}
+
+void ALRPlayerState::SetGenericTeamId(const FGenericTeamId& NewTeamID)
+{
+	if (HasAuthority())
+	{
+		const FGenericTeamId OldTeamID = MyTeamID;
+
+		MyTeamID = NewTeamID;
+		ConditionalBroadcastTeamChanged(this, OldTeamID, NewTeamID);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Cannot set team for %s on non-authority"), *GetPathName(this));
+	}
+}
+
+FGenericTeamId ALRPlayerState::GetGenericTeamId() const
+{
+	return MyTeamID;
+}
+
+FOnTeamIndexChangedDelegate* ALRPlayerState::GetOnTeamIndexChangedDelegate()
+{
+	return &OnTeamChangedDelegate;
+}
+
+void ALRPlayerState::AddStatTagStack(FGameplayTag Tag, int32 StackCount)
+{
+	StatTags.AddStack(Tag, StackCount);
+}
+
+void ALRPlayerState::RemoveStatTagStack(FGameplayTag Tag, int32 StackCount)
+{
+	StatTags.RemoveStack(Tag, StackCount);
+}
+
+int32 ALRPlayerState::GetStatTagStackCount(FGameplayTag Tag) const
+{
+	return StatTags.GetStackCount(Tag);
+}
+
+bool ALRPlayerState::HasStatTag(FGameplayTag Tag) const
+{
+	return StatTags.ContainsTag(Tag);
 }
 
 void ALRPlayerState::OnExperienceLoaded(const ULRExperience* CurrentExperience)

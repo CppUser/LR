@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "CommonPlayerController.h"
+#include "Teams/ILRTeamAgentInterface.h"
 #include "LRPlayerController.generated.h"
 
 
@@ -12,7 +13,7 @@ class ULRAbilitySystemComponent;
 class ALRPlayerState;
 
 UCLASS(Config = Game)
-class LR_API ALRPlayerController : public ACommonPlayerController
+class LR_API ALRPlayerController : public ACommonPlayerController , public ILRTeamAgentInterface
 {
 	GENERATED_BODY()
 public:
@@ -42,4 +43,22 @@ public:
 
 	virtual void PreProcessInput(const float DeltaTime, const bool bGamePaused) override;
 	virtual void PostProcessInput(const float DeltaTime, const bool bGamePaused) override;
+
+	virtual void SetGenericTeamId(const FGenericTeamId& NewTeamID) override;
+	virtual FGenericTeamId GetGenericTeamId() const override;
+	virtual FOnTeamIndexChangedDelegate* GetOnTeamIndexChangedDelegate() override;
+
+protected:
+	virtual void OnPlayerStateChanged();
+private:
+	UFUNCTION()
+	void OnPlayerStateChangedTeam(UObject* TeamAgent, int32 OldTeam, int32 NewTeam);
+
+	void BroadcastOnPlayerStateChanged();
+private:
+	UPROPERTY()
+	FOnTeamIndexChangedDelegate OnTeamChangedDelegate;
+
+	UPROPERTY()
+	TObjectPtr<APlayerState> LastSeenPlayerState;
 };

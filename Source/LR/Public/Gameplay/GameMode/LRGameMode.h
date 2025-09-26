@@ -38,6 +38,10 @@ public:
 	void RequestPlayerRestartNextFrame(AController* Controller, bool bForceReset = false);
 
 	FOnGameModePlayerInitialized OnGameModePlayerInitialized;
+#pragma region Temp Placeholders
+	void InitializeHTNSystem();
+	
+#pragma endregion Temp Placeholders
 protected:
 	void OnExperienceLoaded(const ULRExperience* CurrentExperience);
 	bool IsExperienceLoaded() const;

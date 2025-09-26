@@ -5,6 +5,11 @@
 #include "Character/LRPawnData.h"
 #include "Character/LRCharacter.h"
 #include "Character/Components/LRPawnExtComponent.h"
+#include "Experemental/HTN/HTNDomainDefinition.h"
+#include "Experemental/HTN/HTNManager.h"
+#include "Experemental/HTN/HTNPrimitiveTask.h"
+#include "Experemental/HTN/Test/AITest.h"
+#include "Experemental/HTN/Test/QuestTest.h"
 #include "Gameplay/Experience/LRExperience.h"
 #include "Gameplay/Experience/LRExperienceManagerComponent.h"
 #include "Gameplay/GameMode/LRGameState.h"
@@ -318,4 +323,43 @@ void ALRGameMode::OnExperienceDataReady(FPrimaryAssetId ExperienceId, const FStr
 	}
 }
 
-
+void ALRGameMode::InitializeHTNSystem()
+{
+	// // Get HTN Manager
+	// UHTNManager* HTNManager = UHTNManager::GetHTNManager(this);
+ //    
+	// // Load domain configuration
+	// UHTNDomainDefinition* CombatDomain = LoadObject<UHTNDomainDefinition>(
+	// 	nullptr, TEXT("/Game/Blueprints/AI/HTN/Domains/CombatDomain"));
+ //    
+	// UHTNDomainDefinition* QuestDomain = LoadObject<UHTNDomainDefinition>(
+	// 	nullptr, TEXT("/Game/Blueprints/AI/HTN/Domains/QuestDomain"));
+ //    
+	// // Initialize global world state
+	// HTNManager->GlobalWorldState = CombatDomain->CreateDomainWorldState();
+ //    
+	// // Register task classes
+	// HTNManager->RegisterTaskClass(UAITask_MoveToLocation::StaticClass(), TEXT("MoveTo"));
+	// HTNManager->RegisterTaskClass(UAITask_Combat::StaticClass(), TEXT("Combat"));
+	// HTNManager->RegisterTaskClass(UQuestTask::StaticClass(), TEXT("Quest"));
+	// HTNManager->RegisterTaskClass(UHTNSmartObjectTask::StaticClass(), TEXT("SmartObject"));
+ //    
+	// // Setup multi-agent coordinator
+	// HTNManager->MultiAgentCoordinator->SharedWorldState = HTNManager->GlobalWorldState;
+ //    
+	// // Create utility selector with considerations
+	// HTNManager->UtilitySelector = NewObject<UHTNUtilitySelector>();
+ //    
+	// // Add utility considerations
+	// FHTNUtilityConsideration HealthConsideration;
+	// HealthConsideration.ConsiderationName = TEXT("Health");
+ //    
+	// FHTNUtilityCurve HealthCurve;
+	// HealthCurve.InputProperty = TEXT("Health");
+	// HealthCurve.Weight = 2.0f;
+	// // HealthCurve.Curve = LoadObject<UCurveFloat>(...); // Load actual curve asset
+	// HealthConsideration.Curves.Add(HealthCurve);
+ //    
+	// HTNManager->UtilitySelector->Considerations.Add(HealthConsideration);
+    
+}
