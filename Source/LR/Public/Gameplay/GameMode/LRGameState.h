@@ -6,6 +6,8 @@
 #include "ModularGameState.h"
 #include "LRGameState.generated.h"
 
+class ULRTeamDisplayAsset;
+class ULRTeamCreationComponent;
 class ULRExperienceManagerComponent;
 /**
  * 
@@ -29,4 +31,10 @@ public:
 private:
 	UPROPERTY()
 	TObjectPtr<ULRExperienceManagerComponent> ExperienceManagerComponent;
+
+	UPROPERTY()
+	TObjectPtr<ULRTeamCreationComponent> TeamCreationComponent;
+
+	UPROPERTY(EditDefaultsOnly, meta = (AllowPrivateAccess = true))
+	TMap<uint8, TObjectPtr<ULRTeamDisplayAsset>> TeamsToCreate;
 };

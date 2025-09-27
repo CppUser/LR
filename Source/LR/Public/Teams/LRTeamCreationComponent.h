@@ -22,6 +22,8 @@ public:
 
 	virtual void BeginPlay() override;
 
+	void SetTeams(TMap<uint8, TObjectPtr<ULRTeamDisplayAsset>> InTeams){TeamsToCreate = InTeams;}
+
 #if WITH_EDITOR
 	virtual EDataValidationResult IsDataValid(class FDataValidationContext& Context) const override;
 #endif

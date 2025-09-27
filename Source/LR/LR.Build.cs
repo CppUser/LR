@@ -10,7 +10,12 @@ public class LR : ModuleRules
 		
 		PublicIncludePaths.AddRange(
 			new string[] {
-				"LR"
+			}
+		);
+		
+		PrivateIncludePaths.AddRange(
+			new string[] {
+				"LR/Private"
 			}
 		);
 	

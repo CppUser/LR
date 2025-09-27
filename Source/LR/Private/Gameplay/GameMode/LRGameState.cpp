@@ -1,8 +1,8 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "LR/Public/Gameplay/GameMode/LRGameState.h"
-
+#include "Gameplay/GameMode/LRGameState.h"
+#include "Teams/LRTeamCreationComponent.h"
 #include "Gameplay/Experience/LRExperienceManagerComponent.h"
 
 
@@ -12,7 +12,8 @@ ALRGameState::ALRGameState(const FObjectInitializer& ObjInit) : Super(ObjInit)
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = true;
 
-	ExperienceManagerComponent = CreateDefaultSubobject<ULRExperienceManagerComponent>(TEXT("ExperienceManagerComponent"));
+	ExperienceManagerComponent = ObjInit.CreateDefaultSubobject<ULRExperienceManagerComponent>(this,TEXT("ExperienceManagerComponent"));
+	TeamCreationComponent = ObjInit.CreateDefaultSubobject<ULRTeamCreationComponent>(this,"TeamCreationComponent");
 
 }
 
@@ -24,6 +25,7 @@ void ALRGameState::PreInitializeComponents()
 void ALRGameState::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
+	TeamCreationComponent->SetTeams(TeamsToCreate);
 }
 
 void ALRGameState::EndPlay(const EEndPlayReason::Type EndPlayReason)
